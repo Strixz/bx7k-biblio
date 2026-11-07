@@ -1,7 +1,7 @@
 import { db } from './db';
-import { genererEtageres } from './formes';
+import { sensDe } from './etageres';
 import { normaliser } from './recherche';
-import type { Emplacement, Etagere, Forme, Livre } from './types';
+import type { Emplacement, Etagere, FormeEtagere, Livre } from './types';
 
 // ——— Méga-collections ———
 
@@ -25,13 +25,10 @@ export async function supprimerMega(id: number) {
 
 export const listerBibliotheques = (megaId: number) => db.biblios.where({ megaId }).sortBy('ordre');
 
-export async function creerBibliotheque(megaId: number, nom: string, forme: Forme): Promise<number> {
-  const gen = genererEtageres(forme);
-  return db.transaction('rw', db.biblios, db.etageres, async () => {
+export async function creerBibliotheque(megaId: number, nom: string): Promise<number> {
+  return db.transaction('rw', db.biblios, async () => {
     const ordre = Math.max(-1, ...(await db.biblios.where({ megaId }).toArray()).map((b) => b.ordre)) + 1;
-    const biblioId = await db.biblios.add({ megaId, nom: nom.trim(), ordre, forme });
-    await db.etageres.bulkAdd(gen.map((g, i) => ({ ...g, biblioId, ordre: i })));
-    return biblioId;
+    return db.biblios.add({ megaId, nom: nom.trim(), ordre });
   });
 }
 
@@ -46,52 +43,94 @@ export async function supprimerBibliotheque(id: number) {
   });
 }
 
-export const listerEtageres = (biblioId: number) => db.etageres.where({ biblioId }).sortBy('ordre');
+// ——— Étagères ———
 
-export const renommerEtagere = (id: number, nom: string) => db.etageres.update(id, { nom: nom.trim() });
+const RANG = { devant: 0, derriere: 1 } as const;
 
-/** Étagères qui disparaîtraient avec la nouvelle forme et qui contiennent encore des livres. */
-export async function etageresSupprimeesAvecLivres(biblioId: number, forme: Forme): Promise<Etagere[]> {
-  const cles = new Set(genererEtageres(forme).map((g) => g.cle));
-  const res: Etagere[] = [];
-  for (const e of await listerEtageres(biblioId)) {
-    if (!cles.has(e.cle) && (await db.livres.where({ etagereId: e.id! }).count()) > 0) res.push(e);
-  }
-  return res;
+/** Étagères du meuble dans l'ordre, la rangée de devant avant celle de derrière. */
+export const listerEtageres = async (biblioId: number) =>
+  (await db.etageres.where({ biblioId }).toArray()).sort(
+    (a, b) => a.ordre - b.ordre || (a.rangee ? RANG[a.rangee] : 0) - (b.rangee ? RANG[b.rangee] : 0)
+  );
+
+/** Nombre d'étagères du meuble (une double rangée compte pour une). */
+export async function compterEtageres(biblioId: number): Promise<number> {
+  return new Set((await db.etageres.where({ biblioId }).toArray()).map((e) => e.ordre)).size;
+}
+
+/** « Étagère 3 » ou « Pile 2 » : numéro suivant parmi les étagères du même genre. */
+export async function nomParDefaut(biblioId: number, forme: FormeEtagere): Promise<string> {
+  const pile = forme === 'pile';
+  const groupes = new Set(
+    (await db.etageres.where({ biblioId }).toArray()).filter((e) => (e.forme === 'pile') === pile).map((e) => e.ordre)
+  );
+  return `${pile ? 'Pile' : 'Étagère'} ${groupes.size + 1}`;
+}
+
+/** L'étagère et, si elle est en double rangée, son autre rangée. Devant en premier. */
+export async function groupeEtagere(etagereId: number): Promise<Etagere[]> {
+  const e = await db.etageres.get(etagereId);
+  if (!e) return [];
+  return (await listerEtageres(e.biblioId)).filter((x) => x.ordre === e.ordre);
+}
+
+/** Ajoute une étagère en bas du meuble. Renvoie l'étagère (ou la rangée de devant) créée. */
+export async function creerEtagere(biblioId: number, nom: string, forme: FormeEtagere): Promise<number> {
+  return db.transaction('rw', db.etageres, async () => {
+    const ordre = Math.max(-1, ...(await db.etageres.where({ biblioId }).toArray()).map((e) => e.ordre)) + 1;
+    const base = { biblioId, ordre, nom: nom.trim(), forme, sens: sensDe(forme) } as const;
+    if (forme !== 'double') return db.etageres.add({ ...base });
+    const id = await db.etageres.add({ ...base, rangee: 'devant' });
+    await db.etageres.add({ ...base, rangee: 'derriere' });
+    return id;
+  });
+}
+
+/** Livres de la rangée de derrière, qui changeraient de place si l'étagère n'était plus double. */
+export async function livresDerriere(etagereId: number): Promise<number> {
+  const derriere = (await groupeEtagere(etagereId)).find((e) => e.rangee === 'derriere');
+  return derriere ? db.livres.where({ etagereId: derriere.id! }).count() : 0;
 }
 
 /**
- * Change les dimensions d'une bibliothèque (même type de forme). Les étagères qui restent gardent
- * leur nom ; les livres des étagères supprimées vont à la fin de l'étagère `cibleCle`.
+ * Renomme l'étagère et change sa forme. Quand une double rangée devient simple (ou pile),
+ * les livres de derrière sont mis à la suite de ceux de devant.
  */
-export async function changerForme(biblioId: number, forme: Forme, cibleCle?: string) {
-  const biblio = await db.biblios.get(biblioId);
-  if (!biblio) throw new Error('Bibliothèque introuvable');
-  if (biblio.forme.type !== forme.type) throw new Error('Le type de meuble ne peut pas changer');
-  const gen = genererEtageres(forme);
-  await db.transaction('rw', db.biblios, db.etageres, db.livres, async () => {
-    const existantes = new Map((await listerEtageres(biblioId)).map((e) => [e.cle, e]));
-    const ids = new Map<string, number>();
-    for (const [i, g] of gen.entries()) {
-      const e = existantes.get(g.cle);
-      if (e) {
-        await db.etageres.update(e.id!, { ordre: i });
-        ids.set(g.cle, e.id!);
-      } else {
-        ids.set(g.cle, await db.etageres.add({ ...g, biblioId, ordre: i }));
-      }
+export async function modifierEtagere(etagereId: number, nom: string, forme: FormeEtagere) {
+  await db.transaction('rw', db.etageres, db.livres, async () => {
+    const groupe = await groupeEtagere(etagereId);
+    const principale = groupe.find((e) => e.rangee !== 'derriere') ?? groupe[0];
+    if (!principale) throw new Error('Étagère introuvable');
+    const derriere = groupe.find((e) => e !== principale);
+    const commun = { nom: nom.trim(), forme, sens: sensDe(forme) };
+
+    if (forme === 'double') {
+      await db.etageres.update(principale.id!, { ...commun, rangee: 'devant' });
+      if (derriere) await db.etageres.update(derriere.id!, { ...commun, rangee: 'derriere' });
+      else await db.etageres.add({ ...commun, biblioId: principale.biblioId, ordre: principale.ordre, rangee: 'derriere' });
+      return;
     }
-    for (const e of existantes.values()) {
-      if (ids.has(e.cle)) continue;
-      const livres = await livresEtagere(e.id!);
-      if (livres.length) {
-        const cible = cibleCle ? ids.get(cibleCle) : undefined;
-        if (cible === undefined) throw new Error(`Où ranger les livres de « ${e.nom} » ?`);
-        for (const l of livres) await deplacerVersEtagere(l.id!, cible);
-      }
-      await db.etageres.delete(e.id!);
+    if (derriere) {
+      const ids = [...(await livresEtagere(principale.id!)), ...(await livresEtagere(derriere.id!))].map((l) => l.id!);
+      await appliquerOrdre(principale.id!, ids);
+      await db.etageres.delete(derriere.id!);
     }
-    await db.biblios.update(biblioId, { forme });
+    await db.etageres.update(principale.id!, { ...commun, rangee: undefined });
+  });
+}
+
+/** Nombre de livres sur l'étagère (les deux rangées d'une double rangée). */
+export async function compterLivresGroupe(etagereId: number): Promise<number> {
+  const ids = (await groupeEtagere(etagereId)).map((e) => e.id!);
+  return db.livres.where('etagereId').anyOf(ids).count();
+}
+
+/** Supprime l'étagère (ses deux rangées si elle est double) et tous ses livres. */
+export async function supprimerEtagere(etagereId: number) {
+  await db.transaction('rw', db.etageres, db.livres, async () => {
+    const ids = (await groupeEtagere(etagereId)).map((e) => e.id!);
+    await db.livres.where('etagereId').anyOf(ids).delete();
+    await db.etageres.bulkDelete(ids);
   });
 }
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { nomEtagere } from '../lib/etageres';
   import { onMount } from 'svelte';
   import { db } from '../lib/db';
   import { deplacerVersEtagere, emplacement, majLivre, supprimerLivre, trouverDoublon } from '../lib/depot';
@@ -62,7 +63,7 @@
     const doublon = await trouverDoublon({ titre, auteur }, id);
     if (doublon && (titre !== livre.titre || auteur !== livre.auteur)) {
       const e = await emplacement(doublon.etagereId);
-      const ok = await confirmer('Vous avez déjà ce livre', `Il est rangé : ${e?.mega.nom} › ${e?.biblio.nom} › ${e?.etagere.nom}. Enregistrer quand même ?`, 'Enregistrer');
+      const ok = await confirmer('Vous avez déjà ce livre', `Il est rangé : ${e?.mega.nom} › ${e?.biblio.nom} › ${e ? nomEtagere(e.etagere) : ''}. Enregistrer quand même ?`, 'Enregistrer');
       if (!ok) return;
     }
     await majLivre(id, {
@@ -130,7 +131,7 @@
       <div class="resume">
         <Badges {livre} />
         {#if lieu}
-          <p><strong>Rangé ici :</strong><br />{lieu.biblio.nom} › {lieu.etagere.nom}<br /><span class="doux">{lieu.etagere.sens === 'haut-bas' ? `${position}ᵉ depuis le haut` : `${position}ᵉ en partant de la gauche`}</span></p>
+          <p><strong>Rangé ici :</strong><br />{lieu.biblio.nom} › {nomEtagere(lieu.etagere)}<br /><span class="doux">{lieu.etagere.sens === 'haut-bas' ? `${position}ᵉ depuis le haut` : `${position}ᵉ en partant de la gauche`}</span></p>
         {/if}
         {#if livre.isbn}<p class="doux">ISBN {livre.isbn}</p>{/if}
       </div>

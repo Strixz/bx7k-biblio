@@ -10,7 +10,7 @@
   import Dialogues from './components/Dialogues.svelte';
   import Accueil from './pages/Accueil.svelte';
   import Mega from './pages/Mega.svelte';
-  import FormeBiblio from './pages/FormeBiblio.svelte';
+  import EtagereEdition from './pages/EtagereEdition.svelte';
   import Bibliotheque from './pages/Bibliotheque.svelte';
   import Livre from './pages/Livre.svelte';
   import Ajouter from './pages/Ajouter.svelte';
@@ -56,8 +56,8 @@
   {#key lien(r)}
     {#if r.page === 'accueil'}<Accueil />
     {:else if r.page === 'mega'}<Mega id={r.id} />
-    {:else if r.page === 'nouvelle-biblio'}<FormeBiblio megaId={r.megaId} />
-    {:else if r.page === 'forme'}<FormeBiblio biblioId={r.id} />
+    {:else if r.page === 'nouvelle-etagere'}<EtagereEdition biblioId={r.id} />
+    {:else if r.page === 'etagere'}<EtagereEdition id={r.id} />
     {:else if r.page === 'biblio'}<Bibliotheque id={r.id} />
     {:else if r.page === 'livre'}<Livre id={r.id} />
     {:else if r.page === 'ajouter'}<Ajouter etagereId={r.etagereId} />

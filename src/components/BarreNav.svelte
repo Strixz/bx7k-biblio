@@ -6,7 +6,7 @@
 </script>
 
 <nav aria-label="Menu principal">
-  <a href="#/" class:actif={actif(['accueil', 'mega', 'biblio', 'nouvelle-biblio', 'forme', 'livre'])}>
+  <a href="#/" class:actif={actif(['accueil', 'mega', 'biblio', 'nouvelle-etagere', 'etagere', 'livre'])}>
     <span class="ic" aria-hidden="true">⌂</span>Mes livres
   </a>
   <a href="#/recherche" class:actif={actif(['recherche'])}>

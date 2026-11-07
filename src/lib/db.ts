@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import { completerEtagere } from './etageres';
 import type { Bibliotheque, Etagere, Livre, MegaCollection } from './types';
 
 export interface LigneReglage {
@@ -22,6 +23,16 @@ export class BiblioDB extends Dexie {
       livres: '++id, etagereId, isbn, infos',
       reglages: 'cle'
     });
+    // v2 : les étagères se créent une par une ; les meubles n'ont plus de « forme » globale.
+    this.version(2)
+      .stores({})
+      .upgrade(async (tx) => {
+        await tx.table('etageres').toCollection().modify((e) => {
+          Object.assign(e, completerEtagere(e));
+          delete e.cle;
+        });
+        await tx.table('biblios').toCollection().modify((b) => delete b.forme);
+      });
   }
 }
 

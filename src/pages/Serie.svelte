@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { nomEtagere as libelleEtagere } from '../lib/etageres';
   import { ajouterLivre, emplacement, majLivre, supprimerLivre, trouverDoublon } from '../lib/depot';
   import { chercherInfos, titreProvisoire } from '../lib/infos';
   import { nettoyerIsbn } from '../lib/isbn';
@@ -49,7 +50,7 @@
       audio = undefined;
     }
     const e = await emplacement(etagereId);
-    nomEtagere = `${e?.biblio.nom} › ${e?.etagere.nom}`;
+    nomEtagere = `${e?.biblio.nom} › ${e ? libelleEtagere(e.etagere) : ''}`;
     biblioId = e?.biblio.id;
     await changerReglage('dernierEmplacement', etagereId);
     etape = 'scan';
@@ -79,7 +80,7 @@
       id,
       titre: titreProvisoire(isbn),
       etat: 'recherche',
-      doublon: lieuDoublon ? `${lieuDoublon.biblio.nom} › ${lieuDoublon.etagere.nom}` : undefined
+      doublon: lieuDoublon ? `${lieuDoublon.biblio.nom} › ${libelleEtagere(lieuDoublon.etagere)}` : undefined
     };
     ajouts.push(ajout);
     bip();
@@ -165,6 +166,7 @@
     <div class="pile section">
       {#if biblioId}<a class="btn large" href={`#/biblio/${biblioId}`}>Voir l’étagère</a>{/if}
       <button class="btn second large" onclick={() => { ajouts = []; etape = 'scan'; }}>Continuer à scanner</button>
+      {#if biblioId}<a class="btn second large" href={`#/nouvelle-etagere/${biblioId}`}>＋ Créer l’étagère suivante</a>{/if}
     </div>
   {/if}
 </main>

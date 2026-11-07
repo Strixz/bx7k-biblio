@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { nomEtagere } from '../lib/etageres';
   import { liveQuery } from 'dexie';
   import { db } from '../lib/db';
   import { rechercher, type Filtres } from '../lib/recherche';
@@ -24,7 +25,7 @@
     const chemins = new Map(
       etageres.map((e) => {
         const bi = b.get(e.biblioId);
-        return [e.id, bi ? `${m.get(bi.megaId)} › ${bi.nom} › ${e.nom}` : ''];
+        return [e.id, bi ? `${m.get(bi.megaId)} › ${bi.nom} › ${nomEtagere(e)}` : ''];
       })
     );
     return { livres, chemins };

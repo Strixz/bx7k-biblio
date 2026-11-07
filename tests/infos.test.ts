@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '../src/lib/db';
 import * as d from '../src/lib/depot';
+import { meuble } from './meuble';
 import { chercherInfos, completerEnAttente, titreProvisoire } from '../src/lib/infos';
 import { ErreurReseau } from '../src/lib/isbn';
 
@@ -27,7 +28,7 @@ describe('completerEnAttente', () => {
   beforeEach(async () => {
     await Promise.all(db.tables.map((t) => t.clear()));
     const m = await d.creerMega('M');
-    const b = await d.creerBibliotheque(m, 'B', { type: 'classique', etageres: 1 });
+    const b = await meuble(m, 'B', 1);
     etagereId = (await d.listerEtageres(b))[0].id!;
   });
 

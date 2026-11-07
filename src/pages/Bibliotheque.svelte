@@ -2,8 +2,8 @@
   import { liveQuery } from 'dexie';
   import Sortable from 'sortablejs';
   import { db } from '../lib/db';
-  import { compterLivresBiblio, deplacerLivre, deplacerVersEtagere, listerEtageres, livresEtagere, renommerEtagere, supprimerBibliotheque } from '../lib/depot';
-  import { decrireForme } from '../lib/formes';
+  import { compterLivresBiblio, deplacerLivre, deplacerVersEtagere, listerEtageres, livresEtagere, renommerBibliotheque, supprimerBibliotheque } from '../lib/depot';
+  import { nomEtagere } from '../lib/etageres';
   import { confirmer, demander, toast } from '../lib/dialogues.svelte';
   import { aller } from '../lib/routeur.svelte';
   import EnTete from '../components/EnTete.svelte';
@@ -66,7 +66,7 @@
         if (vers.dataset.entete === 'oui') {
           await deplacerVersEtagere(livreId, versEtagere);
           const e = $donnees?.etageres.find((x) => x.id === versEtagere);
-          toast(`Livre déplacé sur « ${e?.nom} »`);
+          toast(`Livre déplacé sur « ${e ? nomEtagere(e) : ''} »`);
         } else if (de !== vers || evt.oldDraggableIndex !== evt.newDraggableIndex) {
           await deplacerLivre(livreId, versEtagere, evt.newDraggableIndex!);
         }
@@ -75,9 +75,9 @@
     return { destroy: () => s.destroy() };
   }
 
-  async function renommer(eid: number, nom: string) {
-    const n = await demander('Renommer l’étagère', nom, 'Par exemple : Poches', 'Renommer');
-    if (n) await renommerEtagere(eid, n);
+  async function renommer() {
+    const n = await demander('Renommer la bibliothèque', $donnees?.biblio.nom ?? '', 'Par exemple : Salon gauche', 'Renommer');
+    if (n) await renommerBibliotheque(id, n);
   }
 
   async function supprimer() {
@@ -101,14 +101,19 @@
   <EnTete titre={biblio.nom} chemin={mega ? [{ nom: mega.nom, href: `#/mega/${mega.id}` }] : []} aide="biblio" retour={`#/mega/${biblio.megaId}`} />
 
   <main>
-    <p class="doux forme">{decrireForme(biblio.forme)}</p>
+    {#if !etageres.length}
+      <div class="vide">
+        <span class="grand" aria-hidden="true">📚</span>
+        Ce meuble n’a pas encore d’étagère.<br />Ajoutez-les une par une.
+      </div>
+    {/if}
     <div class="etageres">
       {#each etageres as e (e.id)}
         {@const ouverte = ouvertes.has(e.id!)}
         <section class="carte etagere">
           <div class="entete" data-etagere={e.id} data-entete="oui" use:triable={{ etagereId: e.id!, enTete: true }}>
             <button class="titre" onclick={() => basculer(e.id!)} aria-expanded={ouverte}>
-              <span class="nom">{e.nom}</span>
+              <span class="nom">{nomEtagere(e)}</span>
               <span class="doux">{e.livres.length} livre{e.livres.length > 1 ? 's' : ''} {ouverte ? '▾' : '▸'}</span>
             </button>
           </div>
@@ -136,15 +141,17 @@
             <div class="actions">
               <a class="lien" href={`#/serie/${e.id}`}>📷 Scanner des livres ici</a>
               <a class="lien" href={`#/ajouter/${e.id}`}>＋ Un livre</a>
-              <button class="lien" onclick={() => renommer(e.id!, e.nom)}>✎ Renommer</button>
+              <a class="lien" href={`#/etagere/${e.id}`}>✎ Modifier</a>
             </div>
           {/if}
         </section>
       {/each}
     </div>
 
+    <a class="btn large ajout" href={`#/nouvelle-etagere/${id}`}>＋ Ajouter une étagère</a>
+
     <div class="section pile">
-      <a class="btn second large" href={`#/forme/${id}`}>Modifier le meuble</a>
+      <button class="btn second large" onclick={renommer}>Renommer cette bibliothèque</button>
       <button class="btn danger large" onclick={supprimer}>Supprimer cette bibliothèque</button>
     </div>
   </main>
@@ -153,8 +160,8 @@
 {/if}
 
 <style>
-  .forme {
-    margin: -6px 0 14px;
+  .ajout {
+    margin-top: 16px;
   }
   .etageres {
     display: flex;

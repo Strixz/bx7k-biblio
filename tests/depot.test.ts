@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../src/lib/db';
 import * as d from '../src/lib/depot';
+import { meuble } from './meuble';
+import { nomEtagere } from '../src/lib/etageres';
 
 const nouveau = (etagereId: number, titre: string, extra = {}) =>
   d.ajouterLivre({ etagereId, titre, auteur: 'A', genres: [], statut: 'range', note: '', infos: 'manuel', ...extra });
@@ -13,10 +15,11 @@ beforeEach(async () => {
 });
 
 describe('collections et bibliothèques', () => {
-  it('crée une bibliothèque avec les étagères de sa forme', async () => {
+  it('crée une bibliothèque vide, sans étagère', async () => {
     const m = await d.creerMega('Maison principale');
-    const b = await d.creerBibliotheque(m, 'Salon gauche', { type: 'classique', etageres: 3 });
-    expect((await etageres(b)).map((e) => e.nom)).toEqual(['Étagère 1', 'Étagère 2', 'Étagère 3']);
+    const b = await d.creerBibliotheque(m, ' Salon gauche ');
+    expect((await db.biblios.get(b))!.nom).toBe('Salon gauche');
+    expect(await d.compterEtageres(b)).toBe(0);
   });
 
   it('ordonne les méga-collections et bibliothèques par ordre de création', async () => {
@@ -27,7 +30,7 @@ describe('collections et bibliothèques', () => {
 
   it('supprimer une méga-collection supprime tout son contenu', async () => {
     const m = await d.creerMega('M');
-    const b = await d.creerBibliotheque(m, 'B', { type: 'classique', etageres: 1 });
+    const b = await meuble(m, 'B', 1);
     const [e] = await etageres(b);
     await nouveau(e.id!, 'X');
     await d.supprimerMega(m);
@@ -38,7 +41,7 @@ describe('collections et bibliothèques', () => {
 
   it('compte les livres d’une bibliothèque et d’une méga-collection', async () => {
     const m = await d.creerMega('M');
-    const b = await d.creerBibliotheque(m, 'B', { type: 'classique', etageres: 2 });
+    const b = await meuble(m, 'B', 2);
     const [e1, e2] = await etageres(b);
     await nouveau(e1.id!, 'X');
     await nouveau(e2.id!, 'Y');
@@ -47,58 +50,71 @@ describe('collections et bibliothèques', () => {
   });
 });
 
-describe('changer la forme', () => {
-  it('ajoute des étagères en gardant les noms personnalisés', async () => {
-    const m = await d.creerMega('M');
-    const b = await d.creerBibliotheque(m, 'B', { type: 'classique', etageres: 2 });
-    const [e1] = await etageres(b);
-    await d.renommerEtagere(e1.id!, 'Poches');
-    await d.changerForme(b, { type: 'classique', etageres: 3 });
-    expect((await etageres(b)).map((e) => e.nom)).toEqual(['Poches', 'Étagère 2', 'Étagère 3']);
-    expect((await db.biblios.get(b))!.forme).toEqual({ type: 'classique', etageres: 3 });
+describe('étagères', () => {
+  let b: number;
+  beforeEach(async () => {
+    b = await d.creerBibliotheque(await d.creerMega('M'), 'B');
+  });
+  const noms = async () => (await d.listerEtageres(b)).map(nomEtagere);
+
+  it('ajoute les étagères une par une, en bas du meuble', async () => {
+    await d.creerEtagere(b, 'Étagère 1', 'simple');
+    await d.creerEtagere(b, 'Étagère 2', 'double');
+    await d.creerEtagere(b, 'Pile 1', 'pile');
+    expect(await noms()).toEqual(['Étagère 1', 'Étagère 2 · devant', 'Étagère 2 · derrière', 'Pile 1']);
+    expect((await d.listerEtageres(b)).map((e) => e.sens)).toEqual(['gauche-droite', 'gauche-droite', 'gauche-droite', 'haut-bas']);
+    expect(await d.compterEtageres(b)).toBe(3);
   });
 
-  it('signale les étagères supprimées qui contiennent des livres', async () => {
-    const m = await d.creerMega('M');
-    const b = await d.creerBibliotheque(m, 'B', { type: 'classique', etageres: 3 });
-    const [, , e3] = await etageres(b);
-    await nouveau(e3.id!, 'X');
-    const r = await d.etageresSupprimeesAvecLivres(b, { type: 'classique', etageres: 1 });
-    expect(r.map((e) => e.nom)).toEqual(['Étagère 3']);
-    await expect(d.changerForme(b, { type: 'classique', etageres: 1 })).rejects.toThrow();
+  it('propose le numéro suivant, séparément pour les piles', async () => {
+    expect(await d.nomParDefaut(b, 'simple')).toBe('Étagère 1');
+    await d.creerEtagere(b, 'Étagère 1', 'double');
+    expect(await d.nomParDefaut(b, 'simple')).toBe('Étagère 2');
+    expect(await d.nomParDefaut(b, 'pile')).toBe('Pile 1');
   });
 
-  it('déplace les livres des étagères supprimées à la fin de l’étagère choisie', async () => {
-    const m = await d.creerMega('M');
-    const b = await d.creerBibliotheque(m, 'B', { type: 'classique', etageres: 3 });
-    const [e1, e2, e3] = await etageres(b);
-    await nouveau(e1.id!, 'A');
-    await nouveau(e2.id!, 'B');
-    await nouveau(e3.id!, 'C');
-    await d.changerForme(b, { type: 'classique', etageres: 1 }, 'e1');
-    expect(await titres(e1.id!)).toEqual(['A', 'B', 'C']);
-    expect(await db.etageres.count()).toBe(1);
+  it('modifie le nom des deux rangées d’une étagère double', async () => {
+    const id = await d.creerEtagere(b, 'Étagère 1', 'double');
+    const derriere = (await d.listerEtageres(b))[1].id!;
+    await d.modifierEtagere(derriere, 'Poches', 'double');
+    expect(await noms()).toEqual(['Poches · devant', 'Poches · derrière']);
+    expect((await d.groupeEtagere(id)).map((e) => e.id)).toEqual([id, derriere]);
   });
 
-  it('retire un emplacement du meuble et range ses livres ailleurs', async () => {
-    const m = await d.creerMega('M');
-    const b = await d.creerBibliotheque(m, 'B', { type: 'double', etageres: 2 });
-    const [devant1, derriere1] = await etageres(b);
-    await nouveau(derriere1.id!, 'X');
-    const forme = { type: 'double' as const, etageres: 2, retirees: ['e1-derriere'] };
-    expect((await d.etageresSupprimeesAvecLivres(b, forme)).map((e) => e.nom)).toEqual(['Étagère 1 · derrière']);
-    await d.changerForme(b, forme, 'e1-devant');
-    expect((await etageres(b)).map((e) => e.nom)).toEqual(['Étagère 1 · devant', 'Étagère 2 · devant', 'Étagère 2 · derrière']);
-    expect(await titres(devant1.id!)).toEqual(['X']);
-    // Le remettre recrée un emplacement vide.
-    await d.changerForme(b, { type: 'double', etageres: 2 });
-    expect((await etageres(b)).map((e) => e.nom)[1]).toBe('Étagère 1 · derrière');
+  it('passer en double rangée ajoute une rangée derrière, vide', async () => {
+    const id = await d.creerEtagere(b, 'Étagère 1', 'simple');
+    await nouveau(id, 'A');
+    await d.modifierEtagere(id, 'Étagère 1', 'double');
+    expect(await noms()).toEqual(['Étagère 1 · devant', 'Étagère 1 · derrière']);
+    expect(await titres(id)).toEqual(['A']);
   });
 
-  it('refuse de changer le type de forme', async () => {
-    const m = await d.creerMega('M');
-    const b = await d.creerBibliotheque(m, 'B', { type: 'classique', etageres: 1 });
-    await expect(d.changerForme(b, { type: 'piles', piles: 1 })).rejects.toThrow();
+  it('repasser en simple met les livres de derrière à la suite de ceux de devant', async () => {
+    const id = await d.creerEtagere(b, 'Étagère 1', 'double');
+    const derriere = (await d.listerEtageres(b))[1].id!;
+    await nouveau(id, 'A');
+    await nouveau(derriere, 'B');
+    await nouveau(derriere, 'C');
+    expect(await d.livresDerriere(id)).toBe(2);
+    await d.modifierEtagere(id, 'Étagère 1', 'pile');
+    const [seule, ...autres] = await d.listerEtageres(b);
+    expect(autres).toEqual([]);
+    expect(seule).toMatchObject({ forme: 'pile', sens: 'haut-bas' });
+    expect('rangee' in seule).toBe(false);
+    expect(await titres(id)).toEqual(['A', 'B', 'C']);
+  });
+
+  it('supprime une étagère avec ses deux rangées et ses livres, sans toucher aux autres', async () => {
+    const garde = await d.creerEtagere(b, 'Étagère 1', 'simple');
+    const id = await d.creerEtagere(b, 'Étagère 2', 'double');
+    const derriere = (await d.listerEtageres(b))[2].id!;
+    await nouveau(garde, 'Reste');
+    await nouveau(id, 'A');
+    await nouveau(derriere, 'B');
+    expect(await d.compterLivresGroupe(derriere)).toBe(2);
+    await d.supprimerEtagere(derriere);
+    expect(await noms()).toEqual(['Étagère 1']);
+    expect((await db.livres.toArray()).map((l) => l.titre)).toEqual(['Reste']);
   });
 });
 
@@ -107,7 +123,7 @@ describe('livres', () => {
   let e2: number;
   beforeEach(async () => {
     const m = await d.creerMega('M');
-    const b = await d.creerBibliotheque(m, 'B', { type: 'classique', etageres: 2 });
+    const b = await meuble(m, 'B', 2);
     [e1, e2] = (await etageres(b)).map((e) => e.id!);
   });
 

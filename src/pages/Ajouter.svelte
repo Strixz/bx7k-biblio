@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { nomEtagere } from '../lib/etageres';
   import { liveQuery } from 'dexie';
   import { db } from '../lib/db';
   import { ajouterLivre, emplacement, trouverDoublon } from '../lib/depot';
@@ -51,7 +52,7 @@
     const e = await emplacement(eid);
     return confirmer(
       'Vous avez déjà ce livre',
-      `« ${titre} » est rangé : ${e?.mega.nom} › ${e?.biblio.nom} › ${e?.etagere.nom}. Voulez-vous ajouter un deuxième exemplaire ?`,
+      `« ${titre} » est rangé : ${e?.mega.nom} › ${e?.biblio.nom} › ${e ? nomEtagere(e.etagere) : ''}. Voulez-vous ajouter un deuxième exemplaire ?`,
       'Ajouter quand même'
     );
   }
@@ -83,7 +84,7 @@
     });
     await changerReglage('dernierEmplacement', etagereId);
     const lieu = await emplacement(etagereId);
-    ajoute = { id, lieu: `${lieu?.mega.nom} › ${lieu?.biblio.nom} › ${lieu?.etagere.nom}` };
+    ajoute = { id, lieu: `${lieu?.mega.nom} › ${lieu?.biblio.nom} › ${lieu ? nomEtagere(lieu.etagere) : ''}` };
     etape = 'fait';
   }
 

@@ -1,8 +1,7 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { db } from '../lib/db';
-  import { compterLivresBiblio, compterLivresMega, listerBibliotheques, renommerMega, supprimerMega } from '../lib/depot';
-  import { decrireForme } from '../lib/formes';
+  import { compterEtageres, compterLivresBiblio, compterLivresMega, creerBibliotheque, listerBibliotheques, renommerMega, supprimerMega } from '../lib/depot';
   import { confirmer, demander } from '../lib/dialogues.svelte';
   import { aller } from '../lib/routeur.svelte';
   import EnTete from '../components/EnTete.svelte';
@@ -12,9 +11,18 @@
   const mega = $derived(liveQuery(() => db.megas.get(id)));
   const biblios = $derived(
     liveQuery(async () =>
-      Promise.all((await listerBibliotheques(id)).map(async (b) => ({ ...b, livres: await compterLivresBiblio(b.id!) })))
+      Promise.all(
+        (await listerBibliotheques(id)).map(async (b) => ({ ...b, livres: await compterLivresBiblio(b.id!), etageres: await compterEtageres(b.id!) }))
+      )
     )
   );
+
+  async function nouvelle() {
+    const nom = await demander('Nouvelle bibliothèque', '', 'Par exemple : Salon gauche', 'Créer');
+    if (nom) aller({ page: 'nouvelle-etagere', id: await creerBibliotheque(id, nom) });
+  }
+
+  const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? 's' : ''}`;
 
   async function renommer() {
     const nom = await demander('Renommer le lieu', $mega?.nom ?? '', '', 'Renommer');
@@ -49,7 +57,7 @@
             <span aria-hidden="true" class="icone">📚</span>
             <span class="principal">
               <span class="nom">{b.nom}</span><br />
-              <span class="doux">{decrireForme(b.forme)} · {b.livres} livre{b.livres > 1 ? 's' : ''}</span>
+              <span class="doux">{pluriel(b.etageres, 'étagère')} · {pluriel(b.livres, 'livre')}</span>
             </span>
             <span class="chevron">›</span>
           </a>
@@ -63,7 +71,7 @@
     </div>
   {/if}
 
-  <a class="btn large ajout" href={`#/nouvelle-biblio/${id}`}>＋ Nouvelle bibliothèque</a>
+  <button class="btn large ajout" onclick={nouvelle}>＋ Nouvelle bibliothèque</button>
 
   <div class="section pile">
     <button class="btn second large" onclick={renommer}>Renommer ce lieu</button>

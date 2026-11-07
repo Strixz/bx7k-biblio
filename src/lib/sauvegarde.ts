@@ -1,8 +1,10 @@
 import { db } from './db';
-import type { Livre } from './types';
+import { completerEtagere } from './etageres';
+import type { Bibliotheque, Livre } from './types';
 
 export const FORMAT = 'biblio-scan';
-export const VERSION = 1;
+/** v2 : étagères créées une par une (champ « forme » par étagère). Les sauvegardes v1 restent lisibles. */
+export const VERSION = 2;
 
 export class ErreurSauvegarde extends Error {}
 
@@ -66,8 +68,8 @@ export async function importerDonnees(json: string): Promise<{ livres: number }>
   await db.transaction('rw', db.tables, async () => {
     await Promise.all(db.tables.filter((t) => t.name !== 'reglages').map((t) => t.clear()));
     await db.megas.bulkAdd(d.megas);
-    await db.biblios.bulkAdd(d.biblios ?? []);
-    await db.etageres.bulkAdd(d.etageres ?? []);
+    await db.biblios.bulkAdd(((d.biblios ?? []) as (Bibliotheque & { forme?: unknown })[]).map(({ forme: _f, ...b }) => b));
+    await db.etageres.bulkAdd((d.etageres ?? []).map(completerEtagere));
     await db.livres.bulkAdd(livres);
     if (Array.isArray(d.reglages)) await db.reglages.bulkPut(d.reglages);
   });

@@ -12,17 +12,17 @@ export const AIDES: Record<string, { titre: string; points: string[] }> = {
     titre: 'Les bibliothèques de ce lieu',
     points: [
       'Une bibliothèque, c’est un meuble ou une pièce où vous rangez des livres (par exemple « Salon gauche »).',
-      'Touchez « Nouvelle bibliothèque » pour en ajouter une.',
+      'Touchez « Nouvelle bibliothèque », donnez-lui un nom, puis ajoutez ses étagères une par une.',
       'Touchez une bibliothèque pour voir ses étagères et ses livres.'
     ]
   },
-  forme: {
-    titre: 'Décrire le meuble',
+  etagere: {
+    titre: 'Une étagère',
     points: [
-      'Donnez un nom au meuble, puis choisissez la forme qui lui ressemble le plus.',
-      'Indiquez le nombre d’étagères (ou de cases, ou de piles) avec les boutons − et +.',
-      'Un emplacement n’existe pas (par exemple pas de rangée derrière) ? Ouvrez « Retirer des emplacements » et décochez-le.',
-      'Si aucune forme ne convient, créez une bibliothèque pour chaque partie du meuble.'
+      'Choisissez la forme : étagère simple, double rangée (des livres devant et derrière) ou pile de livres couchés.',
+      'Le nom est proposé tout seul, vous pouvez le changer (par exemple « Étagère du haut »).',
+      'Après la création, scannez les livres de l’étagère ou créez la suivante, jusqu’à ce que le meuble soit complet.',
+      'Pour supprimer une étagère, ouvrez « Modifier » : l’application vous demandera deux fois de confirmer.'
     ]
   },
   biblio: {
@@ -32,7 +32,8 @@ export const AIDES: Record<string, { titre: string; points: string[] }> = {
       'Les livres sont dans l’ordre de l’étagère, de gauche à droite.',
       'Pour déplacer un livre : posez le doigt sur ⋮⋮, gardez-le appuyé et faites glisser.',
       'Pour le mettre sur une autre étagère : faites-le glisser sur le nom de cette étagère.',
-      'Touchez un livre pour voir sa fiche.'
+      'Touchez un livre pour voir sa fiche.',
+      '« Modifier » sous une étagère permet de changer son nom, sa forme, ou de la supprimer.'
     ]
   },
   livre: {

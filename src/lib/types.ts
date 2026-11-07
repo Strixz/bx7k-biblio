@@ -1,12 +1,7 @@
-export type Forme = (
-  | { type: 'classique'; etageres: number }
-  | { type: 'cases'; lignes: number; colonnes: number }
-  | { type: 'double'; etageres: number }
-  | { type: 'piles'; piles: number }
-) & {
-  /** Clés des emplacements qui n'existent pas dans le vrai meuble (ex. « e1-derriere »). */
-  retirees?: string[];
-};
+/** Forme d'une étagère : simple, en double rangée (devant et derrière) ou pile de livres couchés. */
+export type FormeEtagere = 'simple' | 'double' | 'pile';
+
+export type Rangee = 'devant' | 'derriere';
 
 /** Sens de lecture d'une étagère : de gauche à droite, ou de haut en bas pour une pile. */
 export type Sens = 'gauche-droite' | 'haut-bas';
@@ -27,17 +22,22 @@ export interface Bibliotheque {
   megaId: number;
   nom: string;
   ordre: number;
-  forme: Forme;
 }
 
+/**
+ * Une liste de livres ordonnés. Une étagère en double rangée est faite de deux fiches
+ * (devant et derrière) qui partagent la même bibliothèque, le même ordre et le même nom.
+ */
 export interface Etagere {
   id?: number;
   biblioId: number;
-  /** Identifiant stable dans la forme (ex. « e2 », « l1c3 », « e1-derriere », « p1 »). */
-  cle: string;
+  /** Position de l'étagère dans le meuble (0 = la première créée). */
   ordre: number;
   nom: string;
   sens: Sens;
+  forme: FormeEtagere;
+  /** Seulement pour une étagère en double rangée. */
+  rangee?: Rangee;
 }
 
 export interface Pret {

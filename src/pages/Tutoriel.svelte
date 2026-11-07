@@ -4,7 +4,7 @@
 
   const ECRANS = [
     { dessin: '🏠', titre: 'Bienvenue !', texte: 'Cette application vous aide à savoir où sont rangés tous vos livres. Tout reste sur votre téléphone.' },
-    { dessin: '📚', titre: 'Vos lieux et vos meubles', texte: 'Créez d’abord un lieu (votre maison), puis une bibliothèque pour chaque meuble, avec son nombre d’étagères.' },
+    { dessin: '📚', titre: 'Vos lieux et vos meubles', texte: 'Créez d’abord un lieu (votre maison), puis une bibliothèque pour chaque meuble. Ajoutez ensuite ses étagères une par une.' },
     { dessin: '📷', titre: 'Scannez vos livres', texte: 'Touchez « Ajouter » et visez le code-barres au dos du livre. Il est reconnu tout seul.' },
     { dessin: '⋮⋮', titre: 'Rangez en faisant glisser', texte: 'Pour changer un livre de place, appuyez sur ⋮⋮ et faites-le glisser. Le bouton « ? » en haut de chaque page vous aide.' },
     { dessin: '💾', titre: 'Pensez à sauvegarder', texte: 'De temps en temps, allez dans Options et touchez « Faire une sauvegarde ». Votre bibliothèque sera à l’abri.' }
