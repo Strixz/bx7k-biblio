@@ -3,6 +3,7 @@
   import { changerReglage, joursDepuisSauvegarde, reglages } from '../lib/reglages.svelte';
   import { partagerFichier, preparerSauvegarde, telechargerFichier } from '../lib/partage';
   import { importerDonnees, ErreurSauvegarde } from '../lib/sauvegarde';
+  import { choisirEtLire } from '../lib/ouvrirFichier';
   import { chargerReglages } from '../lib/reglages.svelte';
   import { confirmer, informer, toast } from '../lib/dialogues.svelte';
   import { estAndroid } from '../lib/appareil.svelte';
@@ -41,6 +42,18 @@
     }
   }
 
+  /** Bouton « Restaurer » : sélecteur relisible quand le navigateur l'a (Android, ordinateur), sinon le classique. */
+  async function choisirSauvegarde() {
+    let texte: string | null | 'selecteur-classique';
+    try {
+      texte = await choisirEtLire();
+    } catch (e) {
+      return informer('Impossible d’ouvrir ce fichier', `Choisissez-le à nouveau. (Détail : ${(e as Error)?.name ?? 'inconnu'})`);
+    }
+    if (texte === 'selecteur-classique') fichier.click();
+    else if (texte !== null) await restaurer(texte);
+  }
+
   async function importer() {
     const f = fichier.files?.[0];
     if (!f) return;
@@ -54,6 +67,10 @@
     } finally {
       fichier.value = '';
     }
+    await restaurer(texte);
+  }
+
+  async function restaurer(texte: string) {
     const ok = await confirmer(
       'Remplacer votre bibliothèque ?',
       'Tout ce qui est actuellement dans l’application sera remplacé par le contenu de cette sauvegarde.',
@@ -112,7 +129,7 @@
     </p>
     <div class="pile">
       <button class="btn large" onclick={exporter} disabled={enCours}>⬆︎ Faire une sauvegarde</button>
-      <button class="btn second large" onclick={() => fichier.click()}>⬇︎ Restaurer une sauvegarde</button>
+      <button class="btn second large" onclick={choisirSauvegarde}>⬇︎ Restaurer une sauvegarde</button>
       <input bind:this={fichier} type="file" accept="application/json,.json,text/plain,.txt" class="sr" onchange={importer} tabindex="-1" aria-hidden="true" />
     </div>
     <label class="champ rappel">

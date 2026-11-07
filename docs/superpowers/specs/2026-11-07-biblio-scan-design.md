@@ -141,6 +141,7 @@ Rangé, En cours de lecture, Prêté. Passer en « Prêté » demande le nom de 
 ### 7.9 Sauvegarde
 - **Exporter** : génère un fichier (JSON, couvertures incluses) et ouvre la **feuille de partage iOS** (`navigator.share` avec fichier) → « Enregistrer dans Fichiers » → iCloud Drive au choix de l'utilisateur. Repli : téléchargement du fichier.
 - **Importer** : choisir un fichier de sauvegarde ; confirmation « Ceci remplacera toute votre bibliothèque actuelle » ; restauration complète **[choix Claude : remplacement, pas fusion]**.
+ Le fichier peut venir de n’importe où (stockage interne, Google Drive, Proton Drive…) : quand le navigateur le permet, on passe par `showOpenFilePicker`, qui laisse relire un fichier de Drive encore en cours d’arrivée (Chrome Android refuse sinon de le lire : NotReadableError) ; sinon, sélecteur de fichiers classique.
 - **Rappel** : « Dernière sauvegarde : il y a N jours », et invitation à sauvegarder au-delà de **30 jours** (délai réglable).
 - Aucune sauvegarde automatique (impossible pour une PWA) ; pas de « Protection avancée des données » à mentionner.
 
