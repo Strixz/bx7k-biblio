@@ -192,3 +192,9 @@ Découpage en composants, structure du code, détail des animations, illustratio
 
 - Avoir un compte GitHub ; l'assistant préparera le dépôt et le workflow de publication.
 - Installer l'app depuis Safari sur l'iPhone, puis faire une première sauvegarde de test.
+
+## Évolutions après les premiers essais (2026-11-07)
+
+- **Recherche ISBN** : Google Books sans clé renvoie toujours 429 (quota anonyme partagé épuisé). Open Library et le catalogue de la BnF (SRU, UNIMARC, CORS `*`) sont interrogés en parallèle avec l'ISBN-13 et l'ISBN-10. La BnF est prioritaire pour les ISBN français (titres « Série — tome N : titre »). Genres pris dans la source la plus fiable qui en donne (3 au plus) ; nouveau genre « Manga ». Couverture de secours : `covers.openlibrary.org/b/isbn/…?default=false`. Google Books seulement si `VITE_GOOGLE_BOOKS_CLE` est fournie au build (secret GitHub `GOOGLE_BOOKS_CLE`, clé limitée au site), requête envoyée avec `referrerPolicy: strict-origin`.
+- **Emplacements retirés** : `Forme.retirees` liste les clés d'emplacements absents du vrai meuble ; `genererEtageres` les omet (au moins un emplacement gardé). Écran « Modifier la bibliothèque » › « Retirer des emplacements ».
+- **Mises à jour** : bandeau « Une nouvelle version est prête · Mettre à jour » ; vérification à chaque retour sur l'application.

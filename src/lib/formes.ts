@@ -14,8 +14,16 @@ function verifier(n: number) {
   }
 }
 
-/** Liste ordonnée des étagères qu'une forme de meuble produit. */
+/** Liste ordonnée des étagères qu'une forme de meuble produit, sans les emplacements retirés. */
 export function genererEtageres(forme: Forme): EtagereGeneree[] {
+  const retirees = new Set(forme.retirees ?? []);
+  const res = toutesLesEtageres(forme).filter((e) => !retirees.has(e.cle));
+  if (!res.length) throw new Error('Il faut garder au moins un emplacement');
+  return res;
+}
+
+/** Tous les emplacements de la forme, y compris ceux que l'utilisateur a retirés. */
+export function toutesLesEtageres(forme: Forme): EtagereGeneree[] {
   const res: EtagereGeneree[] = [];
   switch (forme.type) {
     case 'classique':
@@ -53,6 +61,12 @@ export function genererEtageres(forme: Forme): EtagereGeneree[] {
 const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? 's' : ''}`;
 
 export function decrireForme(forme: Forme): string {
+  const base = decrireDimensions(forme);
+  if (!forme.retirees?.length) return base;
+  return `${base} · ${pluriel(genererEtageres(forme).length, 'emplacement')}`;
+}
+
+function decrireDimensions(forme: Forme): string {
   switch (forme.type) {
     case 'classique':
       return pluriel(forme.etageres, 'étagère');

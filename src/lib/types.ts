@@ -1,8 +1,12 @@
-export type Forme =
+export type Forme = (
   | { type: 'classique'; etageres: number }
   | { type: 'cases'; lignes: number; colonnes: number }
   | { type: 'double'; etageres: number }
-  | { type: 'piles'; piles: number };
+  | { type: 'piles'; piles: number }
+) & {
+  /** Clés des emplacements qui n'existent pas dans le vrai meuble (ex. « e1-derriere »). */
+  retirees?: string[];
+};
 
 /** Sens de lecture d'une étagère : de gauche à droite, ou de haut en bas pour une pile. */
 export type Sens = 'gauche-droite' | 'haut-bas';

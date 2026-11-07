@@ -5,7 +5,7 @@ lieux › bibliothèques › étagères › livres de gauche à droite. Scan des
 prêté), recherche par titre / auteur / genre, sauvegarde dans un fichier.
 
 **Toutes les données restent sur le téléphone** (IndexedDB). Seul l'ISBN d'un livre scanné est envoyé à
-Open Library puis Google Books pour retrouver ses infos. Conception : `docs/superpowers/specs/2026-11-07-biblio-scan-design.md`.
+Open Library et à la BnF (plus Google Books si une clé est configurée) pour retrouver ses infos. Conception : `docs/superpowers/specs/2026-11-07-biblio-scan-design.md`.
 
 ## Développement
 
@@ -23,6 +23,7 @@ node scripts/icones.mjs   # régénère les icônes depuis docs/design/logo.svg
 1. Créer un dépôt **public** sur GitHub avec un nom peu devinable (ex. `bx7k-biblio`) et y pousser ce code sur `main`.
 2. Dans le dépôt : *Settings › Pages › Build and deployment › Source* : **GitHub Actions**.
 3. Chaque push sur `main` lance les tests puis publie l'app à `https://<pseudo>.github.io/<dépôt>/`.
+4. Facultatif : une clé Google Books gratuite, limitée au site, dans *Settings › Secrets and variables › Actions* sous le nom `GOOGLE_BOOKS_CLE`.
 
 Le site n'est pas indexé (`robots.txt` + balise `noindex`) et ne contient qu'une application vide.
 

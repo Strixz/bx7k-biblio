@@ -1,12 +1,12 @@
 import { normaliser } from './recherche';
 
 export const GENRES_BASE = [
-  'Roman', 'Policier', 'Thriller', 'Science-fiction', 'Fantasy', 'Horreur', 'Romance', 'Jeunesse', 'BD',
+  'Roman', 'Policier', 'Thriller', 'Science-fiction', 'Fantasy', 'Horreur', 'Romance', 'Jeunesse', 'BD', 'Manga',
   'Histoire', 'Biographie', 'Cuisine', 'Art', 'Voyage', 'Essai', 'Poésie', 'Théâtre', 'Philosophie',
   'Sciences', 'Humour', 'Développement personnel', 'Religion', 'Nature', 'Sport'
 ];
 
-/** Mots-clés (anglais ou français, normalisés) → genre français. Le premier qui correspond gagne. */
+/** Mots-clés (anglais ou français, normalisés, pluriel en « s » accepté) → genre français. Le premier qui correspond gagne. */
 const CORRESPONDANCES: [string[], string][] = [
   [['science fiction', 'science-fiction', 'sci-fi'], 'Science-fiction'],
   [['fantasy', 'fantastique'], 'Fantasy'],
@@ -14,8 +14,9 @@ const CORRESPONDANCES: [string[], string][] = [
   [['thriller', 'suspense'], 'Thriller'],
   [['horror', 'horreur'], 'Horreur'],
   [['romance', 'love stories'], 'Romance'],
-  [['juvenile', 'young adult', 'children', 'jeunesse'], 'Jeunesse'],
-  [['comics', 'graphic novel', 'bandes dessinees', 'bande dessinee', 'manga'], 'BD'],
+  [['juvenile', 'young adult', 'children', 'jeunesse', 'junior', 'album'], 'Jeunesse'],
+  [['manga', 'shonen', 'shojo', 'seinen'], 'Manga'],
+  [['comics', 'graphic novel', 'bandes dessinees', 'bande dessinee'], 'BD'],
   [['biography', 'autobiography', 'biographie', 'memoir'], 'Biographie'],
   [['history', 'histoire'], 'Histoire'],
   [['cooking', 'cookery', 'cuisine', 'recipes'], 'Cuisine'],
@@ -30,11 +31,12 @@ const CORRESPONDANCES: [string[], string][] = [
   [['sports', 'sport'], 'Sport'],
   [['art', 'arts', 'photography', 'architecture', 'music'], 'Art'],
   [['science', 'mathematics', 'sciences'], 'Sciences'],
-  [['essays', 'essai', 'political science', 'social science'], 'Essai']
+  [['essays', 'essai', 'political science', 'social science'], 'Essai'],
+  [['roman'], 'Roman']
 ];
 
 const contientMot = (texte: string, cle: string) =>
-  new RegExp(`(^|[^a-z])${cle.replace(/[-]/g, '\\-')}([^a-z]|$)`).test(texte);
+  new RegExp(`(^|[^a-z])${cle.replace(/[-]/g, '\\-')}s?([^a-z]|$)`).test(texte);
 
 /** Traduit les catégories des API (souvent en anglais) en genres français connus. */
 export function traduireCategories(categories: string[]): string[] {
@@ -44,7 +46,7 @@ export function traduireCategories(categories: string[]): string[] {
     const c = normaliser(brut);
     const trouve = CORRESPONDANCES.find(([cles]) => cles.some((k) => contientMot(c, k)));
     if (trouve) res.add(trouve[1]);
-    else if (contientMot(c, 'fiction') || contientMot(c, 'roman')) fiction = true;
+    else if (contientMot(c, 'fiction')) fiction = true;
   }
   if (fiction && res.size === 0) res.add('Roman');
   return [...res];

@@ -111,7 +111,7 @@
     <h2>Vos données</h2>
     <p class="doux">
       Tout reste sur ce téléphone : pas de compte, pas de serveur. Seul le numéro ISBN d’un livre scanné est envoyé aux bases
-      de livres publiques (Open Library, Google Books) pour retrouver son titre et son auteur.
+      de livres publiques (Open Library, BnF, Google Books) pour retrouver son titre et son auteur.
     </p>
   </section>
 </main>

@@ -80,6 +80,21 @@ describe('changer la forme', () => {
     expect(await db.etageres.count()).toBe(1);
   });
 
+  it('retire un emplacement du meuble et range ses livres ailleurs', async () => {
+    const m = await d.creerMega('M');
+    const b = await d.creerBibliotheque(m, 'B', { type: 'double', etageres: 2 });
+    const [devant1, derriere1] = await etageres(b);
+    await nouveau(derriere1.id!, 'X');
+    const forme = { type: 'double' as const, etageres: 2, retirees: ['e1-derriere'] };
+    expect((await d.etageresSupprimeesAvecLivres(b, forme)).map((e) => e.nom)).toEqual(['Étagère 1 · derrière']);
+    await d.changerForme(b, forme, 'e1-devant');
+    expect((await etageres(b)).map((e) => e.nom)).toEqual(['Étagère 1 · devant', 'Étagère 2 · devant', 'Étagère 2 · derrière']);
+    expect(await titres(devant1.id!)).toEqual(['X']);
+    // Le remettre recrée un emplacement vide.
+    await d.changerForme(b, { type: 'double', etageres: 2 });
+    expect((await etageres(b)).map((e) => e.nom)[1]).toBe('Étagère 1 · derrière');
+  });
+
   it('refuse de changer le type de forme', async () => {
     const m = await d.creerMega('M');
     const b = await d.creerBibliotheque(m, 'B', { type: 'classique', etageres: 1 });

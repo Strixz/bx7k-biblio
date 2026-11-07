@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { genererEtageres, decrireForme } from '../src/lib/formes';
+import { genererEtageres, decrireForme, toutesLesEtageres } from '../src/lib/formes';
 
 describe('genererEtageres', () => {
   it('étagères classiques numérotées de haut en bas', () => {
@@ -40,6 +40,16 @@ describe('genererEtageres', () => {
   it('refuse une forme vide', () => {
     expect(() => genererEtageres({ type: 'classique', etageres: 0 })).toThrow();
   });
+
+  it('omet les emplacements retirés, sans changer le nom des autres', () => {
+    const forme = { type: 'double' as const, etageres: 2, retirees: ['e1-derriere'] };
+    expect(genererEtageres(forme).map((e) => e.nom)).toEqual(['Étagère 1 · devant', 'Étagère 2 · devant', 'Étagère 2 · derrière']);
+    expect(toutesLesEtageres(forme)).toHaveLength(4);
+  });
+
+  it('refuse de retirer tous les emplacements', () => {
+    expect(() => genererEtageres({ type: 'piles', piles: 1, retirees: ['p1'] })).toThrow();
+  });
 });
 
 describe('decrireForme', () => {
@@ -49,5 +59,10 @@ describe('decrireForme', () => {
     expect(decrireForme({ type: 'cases', lignes: 4, colonnes: 4 })).toBe('Meuble à cases 4 × 4');
     expect(decrireForme({ type: 'double', etageres: 3 })).toBe('3 étagères en double rangée');
     expect(decrireForme({ type: 'piles', piles: 2 })).toBe('2 piles');
+  });
+  it('indique le nombre d’emplacements quand certains sont retirés', () => {
+    expect(decrireForme({ type: 'double', etageres: 6, retirees: ['e1-derriere'] })).toBe(
+      '6 étagères en double rangée · 11 emplacements'
+    );
   });
 });

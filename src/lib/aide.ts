@@ -21,6 +21,7 @@ export const AIDES: Record<string, { titre: string; points: string[] }> = {
     points: [
       'Donnez un nom au meuble, puis choisissez la forme qui lui ressemble le plus.',
       'Indiquez le nombre d’étagères (ou de cases, ou de piles) avec les boutons − et +.',
+      'Un emplacement n’existe pas (par exemple pas de rangée derrière) ? Ouvrez « Retirer des emplacements » et décochez-le.',
       'Si aucune forme ne convient, créez une bibliothèque pour chaque partie du meuble.'
     ]
   },

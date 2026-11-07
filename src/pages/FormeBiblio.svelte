@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { db } from '../lib/db';
   import { changerForme, creerBibliotheque, etageresSupprimeesAvecLivres, renommerBibliotheque } from '../lib/depot';
-  import { genererEtageres, MAX_PAR_DIMENSION } from '../lib/formes';
+  import { genererEtageres, MAX_PAR_DIMENSION, toutesLesEtageres } from '../lib/formes';
   import { informer } from '../lib/dialogues.svelte';
   import { aller } from '../lib/routeur.svelte';
   import type { Etagere, Forme } from '../lib/types';
@@ -17,6 +17,7 @@
   let n = $state(4); // étagères ou piles
   let lignes = $state(4);
   let colonnes = $state(4);
+  let retirees: string[] = $state([]);
   let lieu = $state('');
   let lieuId = $state(0);
   let aRedistribuer: Etagere[] = $state([]);
@@ -37,15 +38,24 @@
       type = b.forme.type;
       if (b.forme.type === 'cases') ({ lignes, colonnes } = b.forme);
       else n = b.forme.type === 'piles' ? b.forme.piles : b.forme.etageres;
+      retirees = b.forme.retirees ?? [];
       lieuId = b.megaId;
     } else lieuId = megaId!;
     lieu = (await db.megas.get(lieuId))?.nom ?? '';
   });
 
-  const forme: Forme = $derived(
+  const dimensions: Forme = $derived(
     type === 'cases' ? { type, lignes, colonnes } : type === 'piles' ? { type, piles: n } : { type, etageres: n }
   );
+  const toutes = $derived(toutesLesEtageres(dimensions));
+  // Les emplacements retirés qui n'existent plus (meuble réduit) sont oubliés.
+  const retireesValides = $derived(retirees.filter((c) => toutes.some((e) => e.cle === c)));
+  const forme: Forme = $derived(retireesValides.length ? { ...dimensions, retirees: retireesValides } : dimensions);
   const cibles = $derived(genererEtageres(forme));
+
+  function basculer(cle: string, garder: boolean) {
+    retirees = garder ? retirees.filter((c) => c !== cle) : [...retirees, cle];
+  }
 
   $effect(() => {
     if (biblioId) etageresSupprimeesAvecLivres(biblioId, forme).then((r) => (aRedistribuer = r));
@@ -121,6 +131,32 @@
       {/if}
       <p class="doux apercu">Cela fera {cibles.length} emplacement{cibles.length > 1 ? 's' : ''} : {cibles.slice(0, 3).map((c) => c.nom).join(', ')}{cibles.length > 3 ? '…' : ''}</p>
     </div>
+
+    {#if toutes.length > 1}
+      <details class="carte retirer" open={retireesValides.length > 0}>
+        <summary>
+          <strong>Retirer des emplacements</strong><br />
+          <span class="doux">Par exemple si l’étagère 1 n’a pas de rangée derrière.</span>
+        </summary>
+        <ul>
+          {#each toutes as e (e.cle)}
+            {@const garde = !retireesValides.includes(e.cle)}
+            <li>
+              <label class:retire={!garde}>
+                <input
+                  type="checkbox"
+                  checked={garde}
+                  disabled={garde && cibles.length === 1}
+                  onchange={(ev) => basculer(e.cle, ev.currentTarget.checked)}
+                />
+                {e.nom}
+              </label>
+            </li>
+          {/each}
+        </ul>
+        <p class="doux">Décochez les emplacements qui n’existent pas dans votre meuble.</p>
+      </details>
+    {/if}
 
     {#if aRedistribuer.length}
       <div class="bandeau avertissement">
@@ -216,6 +252,39 @@
   }
   .apercu {
     margin: 4px 0 8px;
+  }
+  .retirer {
+    padding: 4px 16px;
+    margin-bottom: 18px;
+  }
+  .retirer summary {
+    cursor: pointer;
+    padding: 12px 0;
+    min-height: 44px;
+  }
+  .retirer ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .retirer label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    border-top: 1px solid var(--bo);
+    cursor: pointer;
+  }
+  .retirer input {
+    width: 24px;
+    height: 24px;
+    accent-color: var(--ac);
+    flex: none;
+  }
+  .retirer .retire {
+    color: var(--tx);
+    opacity: 0.5;
+    text-decoration: line-through;
   }
   .avertissement .champ {
     margin: 10px 0 0;

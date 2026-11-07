@@ -5,6 +5,7 @@
   import { routeur, aller, lien } from './lib/routeur.svelte';
   import { completerEnAttente } from './lib/infos';
   import { toast } from './lib/dialogues.svelte';
+  import { miseAJour, mettreAJour } from './lib/miseAJour.svelte';
   import BarreNav from './components/BarreNav.svelte';
   import Dialogues from './components/Dialogues.svelte';
   import Accueil from './pages/Accueil.svelte';
@@ -67,6 +68,35 @@
     {:else if r.page === 'installer'}<Installer />
     {/if}
   {/key}
+  {#if miseAJour.disponible}
+    <div class="maj" role="status">
+      <span>Une nouvelle version est prête.</span>
+      <button class="btn" onclick={mettreAJour}>Mettre à jour</button>
+    </div>
+  {/if}
   {#if r.page !== 'tutoriel'}<BarreNav />{/if}
   <Dialogues />
 {/if}
+
+<style>
+  .maj {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(var(--nav) + 12px);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 10px 10px 16px;
+    border-radius: var(--rayon);
+    background: var(--tx);
+    color: var(--bg);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+    font-weight: 600;
+  }
+  .maj .btn {
+    flex: none;
+  }
+</style>
