@@ -21,6 +21,7 @@
   let lieu = $state('');
   let lieuId = $state(0);
   let aRedistribuer: Etagere[] = $state([]);
+  let charge = $state(false);
   let cible = $state('');
 
   const TYPES: { type: Type; titre: string; texte: string; dessin: string }[] = [
@@ -40,6 +41,7 @@
       else n = b.forme.type === 'piles' ? b.forme.piles : b.forme.etageres;
       retirees = b.forme.retirees ?? [];
       lieuId = b.megaId;
+      charge = true;
     } else lieuId = megaId!;
     lieu = (await db.megas.get(lieuId))?.nom ?? '';
   });
@@ -57,8 +59,14 @@
     retirees = garder ? retirees.filter((c) => c !== cle) : [...retirees, cle];
   }
 
+  let demande = 0;
   $effect(() => {
-    if (biblioId) etageresSupprimeesAvecLivres(biblioId, forme).then((r) => (aRedistribuer = r));
+    // Attendre la vraie forme du meuble : la forme par défaut ferait croire que tout disparaît.
+    if (!biblioId || !charge) return;
+    const n = ++demande;
+    etageresSupprimeesAvecLivres(biblioId, forme).then((r) => {
+      if (n === demande) aRedistribuer = r;
+    });
   });
   $effect(() => {
     if (!cibles.some((c) => c.cle === cible)) cible = cibles.at(-1)?.cle ?? '';
