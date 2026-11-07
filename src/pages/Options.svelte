@@ -43,8 +43,17 @@
 
   async function importer() {
     const f = fichier.files?.[0];
-    fichier.value = '';
     if (!f) return;
+    // Lire tout de suite : sur Android, un fichier choisi dans Drive ou Fichiers peut ne plus
+    // être lisible une fois le champ vidé ou après la question de confirmation.
+    let texte: string;
+    try {
+      texte = await f.text();
+    } catch (e) {
+      return informer('Impossible d’ouvrir ce fichier', `Choisissez-le à nouveau. (Détail : ${(e as Error)?.name ?? 'inconnu'})`);
+    } finally {
+      fichier.value = '';
+    }
     const ok = await confirmer(
       'Remplacer votre bibliothèque ?',
       'Tout ce qui est actuellement dans l’application sera remplacé par le contenu de cette sauvegarde.',
@@ -53,11 +62,14 @@
     );
     if (!ok) return;
     try {
-      const r = await importerDonnees(await f.text());
+      const r = await importerDonnees(texte);
       await chargerReglages();
       informer('Sauvegarde restaurée', `${r.livres} livre${r.livres > 1 ? 's' : ''} retrouvé${r.livres > 1 ? 's' : ''}.`);
     } catch (e) {
-      informer('Impossible de lire ce fichier', e instanceof ErreurSauvegarde ? e.message : 'Le fichier semble abîmé.');
+      informer(
+        'Impossible de lire ce fichier',
+        e instanceof ErreurSauvegarde ? e.message : `Le fichier semble abîmé. (Détail : ${(e as Error)?.name ?? 'inconnu'} – ${(e as Error)?.message ?? ''})`
+      );
     }
   }
 </script>
