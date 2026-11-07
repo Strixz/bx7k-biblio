@@ -14,6 +14,7 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'robots.txt'],
       manifest: {
+        id: './',
         name: 'Biblio-Scan',
         short_name: 'Biblio',
         description: 'Retrouvez où sont rangés vos livres.',

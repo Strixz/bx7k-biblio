@@ -36,7 +36,10 @@ Les données de l'app sont liées à son adresse exacte. Changer l'adresse = l'a
   même stockage et pourraient lire ou effacer les données de l'app.
 - Laisser le site en ligne : il sert aux mises à jour et à la réinstallation.
 
-## Installer sur l'iPhone
+## Installer sur le téléphone
 
-Ouvrir l'adresse dans **Safari** › bouton Partager › **Sur l'écran d'accueil** › Ajouter. Utiliser ensuite
+**Android** : ouvrir l'adresse dans **Chrome** › menu ⋮ › **Installer l'application** (l'app propose aussi un bouton « Installer » dans *Options › Comment installer l'application*).
+
+**iPhone** : 
+ouvrir l'adresse dans **Safari** › bouton Partager › **Sur l'écran d'accueil** › Ajouter. Utiliser ensuite
 toujours l'icône de l'écran d'accueil. Une mise à jour publiée s'applique au lancement suivant de l'app.

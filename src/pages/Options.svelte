@@ -5,6 +5,7 @@
   import { importerDonnees, ErreurSauvegarde } from '../lib/sauvegarde';
   import { chargerReglages } from '../lib/reglages.svelte';
   import { confirmer, informer, toast } from '../lib/dialogues.svelte';
+  import { estAndroid } from '../lib/appareil.svelte';
   import EnTete from '../components/EnTete.svelte';
 
   let { sombreEffectif }: { sombreEffectif: boolean } = $props();
@@ -69,11 +70,11 @@
     </div>
 
     <div class="carte ligne-reglage">
-      <label for="sombre"><strong>Mode sombre</strong><br /><span class="doux">{reglages.sombre === null ? 'Suit le réglage de l’iPhone' : 'Choisi par vous'}</span></label>
+      <label for="sombre"><strong>Mode sombre</strong><br /><span class="doux">{reglages.sombre === null ? 'Suit le réglage du téléphone' : 'Choisi par vous'}</span></label>
       <input id="sombre" type="checkbox" role="switch" class="interrupteur" checked={sombreEffectif} onchange={(e) => changerReglage('sombre', e.currentTarget.checked)} />
     </div>
     {#if reglages.sombre !== null}
-      <button class="lien" onclick={() => changerReglage('sombre', null)}>Revenir au réglage de l’iPhone</button>
+      <button class="lien" onclick={() => changerReglage('sombre', null)}>Revenir au réglage du téléphone</button>
     {/if}
   </section>
 
@@ -81,7 +82,9 @@
     <h2>Sauvegarde</h2>
     <p class="doux">
       {jours === null ? 'Aucune sauvegarde pour l’instant.' : jours === 0 ? 'Dernière sauvegarde : aujourd’hui.' : `Dernière sauvegarde : il y a ${jours} jour${jours > 1 ? 's' : ''}.`}
-      La sauvegarde est un fichier : choisissez « Enregistrer dans Fichiers », puis iCloud Drive par exemple.
+      {estAndroid
+        ? 'La sauvegarde est un fichier : enregistrez-le dans Google Drive ou dans vos Fichiers, par exemple.'
+        : 'La sauvegarde est un fichier : choisissez « Enregistrer dans Fichiers », puis iCloud Drive par exemple.'}
     </p>
     <div class="pile">
       <button class="btn large" onclick={exporter} disabled={enCours}>⬆︎ Faire une sauvegarde</button>

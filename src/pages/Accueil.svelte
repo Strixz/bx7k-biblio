@@ -5,6 +5,7 @@
   import { demander } from '../lib/dialogues.svelte';
   import { aller } from '../lib/routeur.svelte';
   import { joursDepuisSauvegarde, reglages } from '../lib/reglages.svelte';
+  import { estInstallee } from '../lib/appareil.svelte';
   import EnTete from '../components/EnTete.svelte';
 
   const megas = liveQuery(async () => {
@@ -15,7 +16,7 @@
   });
   const totalLivres = liveQuery(() => db.livres.count());
 
-  const installee = matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
+  const installee = estInstallee();
 
   const jours = $derived(joursDepuisSauvegarde());
   const rappel = $derived(($totalLivres ?? 0) > 0 && (jours === null ? ($totalLivres ?? 0) >= 10 : jours >= reglages.rappelJours));

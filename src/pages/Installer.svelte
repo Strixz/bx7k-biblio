@@ -1,7 +1,12 @@
 <script lang="ts">
+  import { estAndroid, estInstallee, installation, installer } from '../lib/appareil.svelte';
   import EnTete from '../components/EnTete.svelte';
 
-  const installee = matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
+  let installee = $state(estInstallee());
+
+  async function installerMaintenant() {
+    if (await installer()) installee = true;
+  }
 </script>
 
 <EnTete titre="Installer l’application" aide="" retour="#/" />
@@ -11,18 +16,34 @@
     <div class="vide"><span class="grand" aria-hidden="true">✓</span>L’application est bien installée sur ce téléphone.</div>
   {:else}
     <p>Installer l’application sur l’écran d’accueil permet de l’ouvrir comme les autres applications et de <strong>bien garder vos livres sur ce téléphone</strong>.</p>
-    <ol class="etapes">
-      <li><span class="num">1</span><span>Ouvrez cette page dans <strong>Safari</strong>.</span></li>
-      <li><span class="num">2</span><span>Touchez le bouton <strong>Partager</strong> <span class="ic" aria-label="(un carré avec une flèche vers le haut)">⬆︎</span> en bas de l’écran.</span></li>
-      <li><span class="num">3</span><span>Faites défiler et touchez <strong>« Sur l’écran d’accueil »</strong>.</span></li>
-      <li><span class="num">4</span><span>Touchez <strong>Ajouter</strong> en haut à droite.</span></li>
-      <li><span class="num">5</span><span>Ouvrez l’application depuis sa nouvelle icône 📚 sur l’écran d’accueil.</span></li>
-    </ol>
-    <p class="doux">Important : utilisez toujours l’icône de l’écran d’accueil. Les livres ajoutés depuis Safari ne sont pas les mêmes que ceux de l’application installée.</p>
+
+    {#if installation.invitation}
+      <button class="btn large installer" onclick={installerMaintenant}>📲 Installer maintenant</button>
+    {:else if estAndroid}
+      <ol class="etapes">
+        <li><span class="num">1</span><span>Ouvrez cette page dans <strong>Chrome</strong>.</span></li>
+        <li><span class="num">2</span><span>Touchez le menu <strong>⋮</strong> en haut à droite.</span></li>
+        <li><span class="num">3</span><span>Touchez <strong>« Installer l’application »</strong> (ou « Ajouter à l’écran d’accueil »).</span></li>
+        <li><span class="num">4</span><span>Touchez <strong>Installer</strong>.</span></li>
+        <li><span class="num">5</span><span>Ouvrez l’application depuis sa nouvelle icône 📚.</span></li>
+      </ol>
+    {:else}
+      <ol class="etapes">
+        <li><span class="num">1</span><span>Ouvrez cette page dans <strong>Safari</strong>.</span></li>
+        <li><span class="num">2</span><span>Touchez le bouton <strong>Partager</strong> <span class="ic" aria-label="(un carré avec une flèche vers le haut)">⬆︎</span> en bas de l’écran.</span></li>
+        <li><span class="num">3</span><span>Faites défiler et touchez <strong>« Sur l’écran d’accueil »</strong>.</span></li>
+        <li><span class="num">4</span><span>Touchez <strong>Ajouter</strong> en haut à droite.</span></li>
+        <li><span class="num">5</span><span>Ouvrez l’application depuis sa nouvelle icône 📚 sur l’écran d’accueil.</span></li>
+      </ol>
+    {/if}
+    <p class="doux">Important : utilisez toujours l’icône de l’écran d’accueil. Les livres ajoutés depuis le navigateur ne sont pas les mêmes que ceux de l’application installée.</p>
   {/if}
 </main>
 
 <style>
+  .installer {
+    margin: 20px 0;
+  }
   .etapes {
     list-style: none;
     padding: 0;

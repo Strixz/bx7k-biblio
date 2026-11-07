@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { IScannerControls } from '@zxing/browser';
+  import { estAndroid } from '../lib/appareil.svelte';
 
   interface Props {
     /** Appelé à chaque code-barres lu (le même code peut revenir plusieurs fois). */
@@ -26,7 +27,9 @@
       .catch((e: Error) => {
         erreur =
           e.name === 'NotAllowedError'
-            ? 'L’application n’a pas le droit d’utiliser l’appareil photo. Ouvrez Réglages › Safari › Appareil photo et choisissez « Autoriser », puis revenez ici.'
+            ? estAndroid
+              ? 'L’application n’a pas le droit d’utiliser l’appareil photo. Ouvrez Paramètres › Applications › Chrome › Autorisations › Appareil photo et choisissez « Autoriser », puis revenez ici.'
+              : 'L’application n’a pas le droit d’utiliser l’appareil photo. Ouvrez Réglages › Safari › Appareil photo et choisissez « Autoriser », puis revenez ici.'
             : 'Impossible d’allumer l’appareil photo. Vous pouvez saisir le livre à la main.';
       });
     return () => {

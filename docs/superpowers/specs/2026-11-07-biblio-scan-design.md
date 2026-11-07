@@ -23,7 +23,9 @@ Principe non négociable : **les données de l'utilisateur ne quittent jamais le
 
 ## 3. Non-objectifs
 
-Compte utilisateur, synchronisation entre appareils, serveur de données, partage, statistiques/analytics, publicité, langues autres que le français, publication sur l'App Store, application Android dédiée (si elle marche sur Android, tant mieux, mais ce n'est pas testé).
+Compte utilisateur, synchronisation entre appareils, serveur de données, partage, statistiques/analytics, publicité, langues autres que le français, publication sur l'App Store ou le Play Store.
+
+**Mise à jour 2026-11-07 (demande utilisateur)** : l'app doit aussi fonctionner sur **Android (Chrome)**, pour que l'utilisateur la teste sur son propre téléphone. Même PWA ; textes d'aide, d'installation (bouton « Installer » natif via `beforeinstallprompt`, sinon menu ⋮ › Installer l'application) et d'autorisation caméra adaptés à la plateforme.
 
 ## 4. Anti-objectifs (échec même si « ça marche »)
 

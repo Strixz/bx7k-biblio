@@ -2,7 +2,7 @@ import { db } from './db';
 
 export interface Reglages {
   theme: string;
-  /** null : suit le réglage de l'iPhone tant que l'utilisateur n'a pas choisi. */
+  /** null : suit le réglage du téléphone tant que l'utilisateur n'a pas choisi. */
   sombre: boolean | null;
   derniereSauvegarde: string | null;
   rappelJours: number;
