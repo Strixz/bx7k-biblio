@@ -59,8 +59,9 @@ export const AIDES: Record<string, { titre: string; points: string[] }> = {
     titre: 'Scanner une étagère',
     points: [
       'Choisissez l’étagère, puis scannez les livres un par un, de gauche à droite.',
-      'Chaque livre est ajouté tout de suite à la suite des autres.',
-      'Une erreur ? Touchez « Annuler le dernier ».',
+      'Après chaque livre, vérifiez ses infos puis touchez « Valider et scanner le suivant ».',
+      'Il est rangé à la suite des autres, et le scanner revient pour le livre suivant.',
+      'Une erreur ? Touchez « Retirer le dernier ».',
       'Quand vous avez fini, touchez « J’ai fini ».'
     ]
   },

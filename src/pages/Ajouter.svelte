@@ -9,9 +9,8 @@
   import { changerReglage, reglages } from '../lib/reglages.svelte';
   import EnTete from '../components/EnTete.svelte';
   import Scanner from '../components/Scanner.svelte';
-  import EditeurGenres from '../components/EditeurGenres.svelte';
   import ChoixEmplacement from '../components/ChoixEmplacement.svelte';
-  import Couverture from '../components/Couverture.svelte';
+  import VerifLivre from '../components/VerifLivre.svelte';
 
   let { etagereId: etagereInitiale }: { etagereId?: number } = $props();
 
@@ -63,9 +62,7 @@
     etape = 'verif';
   }
 
-  async function ranger(e: Event) {
-    e.preventDefault();
-    if (!infos.titre.trim()) return informer('Il manque le titre', 'Écrivez au moins le titre du livre.');
+  async function ranger() {
     if (!etagereId) return informer('Où est rangé ce livre ?', 'Choisissez un lieu, une bibliothèque et une étagère.');
     if (!isbn) {
       const doublon = await trouverDoublon({ titre: infos.titre, auteur: infos.auteur });
@@ -117,31 +114,11 @@
       Je cherche ce livre…
     </div>
   {:else if etape === 'verif'}
-    <form onsubmit={ranger}>
-      {#if infos.infos === 'en-attente-reseau'}
-        <div class="bandeau"><div class="principal"><strong>Pas de réseau</strong><br /><span class="doux">Le livre sera enregistré et complété automatiquement quand internet reviendra. Vous pouvez déjà le ranger.</span></div></div>
-      {:else if infos.infos === 'introuvable'}
-        <div class="bandeau"><div class="principal"><strong>Livre introuvable</strong><br /><span class="doux">Écrivez le titre et l’auteur vous-même.</span></div></div>
-      {:else if infos.infos === 'completes'}
-        <div class="trouve">
-          <Couverture blob={infos.couverture} titre={infos.titre} petite />
-          <p><strong>Livre trouvé !</strong><br /><span class="doux">Vérifiez et corrigez si besoin.</span></p>
-        </div>
-      {/if}
-
-      <label class="champ"><span>Titre</span><input type="text" bind:value={infos.titre} /></label>
-      <label class="champ"><span>Auteur</span><input type="text" bind:value={infos.auteur} /></label>
-      <div class="champ"><span class="etiquette">Genres</span><EditeurGenres bind:genres={infos.genres} /></div>
-
+    <VerifLivre bind:infos valider={ranger} annuler={recommencer}>
       <h2 class="ou">Où est-il rangé ?</h2>
       <ChoixEmplacement bind:etagereId />
       <p class="doux">Il sera placé à droite des livres déjà sur cette étagère.</p>
-
-      <div class="pile">
-        <button class="btn large" type="submit">Ranger ce livre</button>
-        <button class="btn second large" type="button" onclick={recommencer}>Annuler</button>
-      </div>
-    </form>
+    </VerifLivre>
   {:else if etape === 'fait' && ajoute}
     <div class="vide succes" role="status">
       <span class="grand" aria-hidden="true">✓</span>
@@ -165,17 +142,6 @@
     background: var(--prete-bg);
     color: var(--prete-tx);
     font-weight: 600;
-  }
-  .trouve {
-    display: flex;
-    gap: 14px;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-  .etiquette {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 6px;
   }
   .ou {
     margin: 22px 0 12px;
