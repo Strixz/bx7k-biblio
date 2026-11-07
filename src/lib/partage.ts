@@ -1,10 +1,17 @@
+import { estAndroid } from './appareil.svelte';
 import { exporterDonnees } from './sauvegarde';
 
-/** Le fichier de sauvegarde, prêt à être partagé ou téléchargé. */
+/**
+ * Le fichier de sauvegarde, prêt à être partagé ou téléchargé. Chrome sur Android refuse
+ * de partager un fichier .json (types autorisés : images, vidéos, texte…) : on l'y nomme en .txt,
+ * le contenu reste le même et la restauration accepte les deux.
+ */
 export async function preparerSauvegarde(): Promise<File> {
   const json = await exporterDonnees();
-  const nom = `biblio-scan-${new Date().toISOString().slice(0, 10)}.json`;
-  return new File([json], nom, { type: 'application/json' });
+  const nom = `biblio-scan-${new Date().toISOString().slice(0, 10)}`;
+  return estAndroid
+    ? new File([json], `${nom}.txt`, { type: 'text/plain' })
+    : new File([json], `${nom}.json`, { type: 'application/json' });
 }
 
 export type ResultatPartage = 'fait' | 'annule' | 'geste-requis';
@@ -26,9 +33,14 @@ export async function partagerFichier(fichier: File): Promise<ResultatPartage> {
       // Partage impossible pour une autre raison : on télécharge le fichier à la place.
     }
   }
+  telechargerFichier(fichier);
+  return 'fait';
+}
+
+/** Enregistre le fichier dans les Téléchargements du téléphone. */
+export function telechargerFichier(fichier: File) {
   const url = URL.createObjectURL(fichier);
   const a = Object.assign(document.createElement('a'), { href: url, download: fichier.name });
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
-  return 'fait';
 }

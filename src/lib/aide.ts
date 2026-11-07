@@ -78,7 +78,7 @@ export const AIDES: Record<string, { titre: string; points: string[] }> = {
     points: [
       'Choisissez les couleurs de l’application et le mode sombre.',
       'Pensez à faire une sauvegarde de temps en temps : elle protège votre bibliothèque si le téléphone a un souci.',
-      'La sauvegarde est un fichier que vous rangez où vous voulez (par exemple dans iCloud Drive ou Google Drive).'
+      'La sauvegarde est un fichier que vous rangez où vous voulez (par exemple dans iCloud Drive ou Google Drive). Sur Android, il se termine par .txt : c’est normal.'
     ]
   }
 };

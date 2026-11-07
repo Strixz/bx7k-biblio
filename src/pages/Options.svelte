@@ -1,7 +1,7 @@
 <script lang="ts">
   import { THEMES } from '../lib/themes';
   import { changerReglage, joursDepuisSauvegarde, reglages } from '../lib/reglages.svelte';
-  import { partagerFichier, preparerSauvegarde } from '../lib/partage';
+  import { partagerFichier, preparerSauvegarde, telechargerFichier } from '../lib/partage';
   import { importerDonnees, ErreurSauvegarde } from '../lib/sauvegarde';
   import { chargerReglages } from '../lib/reglages.svelte';
   import { confirmer, informer, toast } from '../lib/dialogues.svelte';
@@ -25,11 +25,14 @@
         const ok = await confirmer('Votre sauvegarde est prête', 'Touchez « Enregistrer » pour choisir où la ranger.', 'Enregistrer');
         r = ok ? await partagerFichier(fichier) : 'annule';
       }
-      if (r === 'fait') {
+      if (r === 'geste-requis') {
+        // Le partage reste refusé : le fichier va dans les Téléchargements.
+        telechargerFichier(fichier);
+        await changerReglage('derniereSauvegarde', new Date().toISOString());
+        informer('Sauvegarde téléchargée', `Le fichier « ${fichier.name} » est dans vos Téléchargements. Vous pouvez le copier dans votre Drive.`);
+      } else if (r === 'fait') {
         await changerReglage('derniereSauvegarde', new Date().toISOString());
         toast('Sauvegarde faite ✓');
-      } else if (r === 'geste-requis') {
-        informer('La sauvegarde n’a pas pu s’ouvrir', 'Le téléphone a refusé d’ouvrir le partage. Réessayez dans un instant.');
       }
     } catch (e) {
       informer('La sauvegarde n’a pas marché', `Réessayez dans un instant. (Détail : ${(e as Error)?.name ?? 'inconnu'})`);
@@ -98,7 +101,7 @@
     <div class="pile">
       <button class="btn large" onclick={exporter} disabled={enCours}>⬆︎ Faire une sauvegarde</button>
       <button class="btn second large" onclick={() => fichier.click()}>⬇︎ Restaurer une sauvegarde</button>
-      <input bind:this={fichier} type="file" accept="application/json,.json" class="sr" onchange={importer} tabindex="-1" aria-hidden="true" />
+      <input bind:this={fichier} type="file" accept="application/json,.json,text/plain,.txt" class="sr" onchange={importer} tabindex="-1" aria-hidden="true" />
     </div>
     <label class="champ rappel">
       <span>Me rappeler de sauvegarder après</span>
