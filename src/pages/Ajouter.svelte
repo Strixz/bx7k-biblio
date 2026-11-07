@@ -106,7 +106,7 @@
     {#if codeRefuse}<p class="alerte" role="alert">{codeRefuse}</p>{/if}
     <div class="pile choix">
       <button class="btn second large" onclick={saisirMain}>✎ Saisir à la main</button>
-      <a class="btn second large" href={etagereInitiale ? `#/serie/${etagereInitiale}` : '#/serie'}>📷 Scanner toute une étagère</a>
+      <a class="btn second large" href={etagereInitiale ? `#/serie/${etagereInitiale}` : '#/serie'}>📷 Ajouter plusieurs livres</a>
     </div>
   {:else if etape === 'recherche'}
     <div class="vide" role="status">

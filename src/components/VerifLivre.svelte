@@ -48,7 +48,7 @@
 
   {@render children?.()}
 
-  <div class="pile">
+  <div class="pile boutons">
     <button class="btn large" type="submit">{libelleValider}</button>
     <button class="btn second large" type="button" onclick={annuler}>{libelleAnnuler}</button>
   </div>
@@ -60,6 +60,9 @@
     gap: 14px;
     align-items: center;
     margin-bottom: 16px;
+  }
+  .boutons {
+    margin-top: 24px;
   }
   .etiquette {
     display: block;

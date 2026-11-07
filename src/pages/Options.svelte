@@ -1,7 +1,7 @@
 <script lang="ts">
   import { THEMES } from '../lib/themes';
   import { changerReglage, joursDepuisSauvegarde, reglages } from '../lib/reglages.svelte';
-  import { partagerSauvegarde } from '../lib/partage';
+  import { partagerFichier, preparerSauvegarde } from '../lib/partage';
   import { importerDonnees, ErreurSauvegarde } from '../lib/sauvegarde';
   import { chargerReglages } from '../lib/reglages.svelte';
   import { confirmer, informer, toast } from '../lib/dialogues.svelte';
@@ -18,12 +18,21 @@
   async function exporter() {
     enCours = true;
     try {
-      if (await partagerSauvegarde()) {
+      const fichier = await preparerSauvegarde();
+      let r = await partagerFichier(fichier);
+      if (r === 'geste-requis') {
+        // La préparation a été longue : le téléphone demande un nouvel appui pour ouvrir le partage.
+        const ok = await confirmer('Votre sauvegarde est prête', 'Touchez « Enregistrer » pour choisir où la ranger.', 'Enregistrer');
+        r = ok ? await partagerFichier(fichier) : 'annule';
+      }
+      if (r === 'fait') {
         await changerReglage('derniereSauvegarde', new Date().toISOString());
         toast('Sauvegarde faite ✓');
+      } else if (r === 'geste-requis') {
+        informer('La sauvegarde n’a pas pu s’ouvrir', 'Le téléphone a refusé d’ouvrir le partage. Réessayez dans un instant.');
       }
-    } catch {
-      informer('La sauvegarde n’a pas marché', 'Réessayez dans un instant.');
+    } catch (e) {
+      informer('La sauvegarde n’a pas marché', `Réessayez dans un instant. (Détail : ${(e as Error)?.name ?? 'inconnu'})`);
     } finally {
       enCours = false;
     }

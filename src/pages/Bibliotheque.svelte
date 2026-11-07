@@ -187,8 +187,8 @@
                   <p class="vide-etagere doux">Étagère vide. Faites glisser un livre ici ou scannez-en.</p>
                 {/if}
                 <div class="actions">
-                  <a class="lien" href={`#/serie/${e.id}`}>📷 Scanner des livres ici</a>
-                  <a class="lien" href={`#/ajouter/${e.id}`}>＋ Un livre</a>
+                  <a class="lien" href={`#/serie/${e.id}`}>📷 Ajouter plusieurs livres</a>
+                  <a class="lien" href={`#/ajouter/${e.id}`}>＋ Ajouter un livre</a>
                   <a class="lien" href={`#/etagere/${e.id}`}>✎ Modifier</a>
                 </div>
               {/if}

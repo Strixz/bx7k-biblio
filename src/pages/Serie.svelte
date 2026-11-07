@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { nomEtagere as libelleEtagere } from '../lib/etageres';
   import { ajouterLivre, emplacement, supprimerLivre, trouverDoublon } from '../lib/depot';
   import { chercherInfos, type InfosLivre } from '../lib/infos';
@@ -46,11 +47,17 @@
     o.stop(audio.currentTime + 0.15);
   }
 
+  // Ouvert depuis une étagère précise : pas besoin de redemander laquelle, on scanne tout de suite.
+  onMount(() => {
+    if (etagereInitiale) commencer();
+  });
+
   async function commencer() {
     if (!etagereId) return informer('Choisissez une étagère', 'Indiquez sur quelle étagère vous allez scanner les livres.');
-    // Le son doit être autorisé par un geste de l'utilisateur (règle d'iOS).
     try {
       audio = new AudioContext();
+      // iOS n'autorise le son qu'après un appui : on le réveille au premier toucher.
+      if (audio.state === 'suspended') addEventListener('pointerdown', () => audio?.resume(), { once: true });
     } catch {
       audio = undefined;
     }
@@ -150,7 +157,7 @@
   const enAttente = $derived(ajouts.filter((a) => a.etat === 'en-attente-reseau'));
 </script>
 
-<EnTete titre="Scanner une étagère" aide="serie" retour={etagereInitiale ? undefined : '#/ajouter'} />
+<EnTete titre="Ajouter plusieurs livres" aide="serie" retour={biblioId ? `#/biblio/${biblioId}` : '#/ajouter'} />
 
 <main>
   {#if etape === 'choix'}
