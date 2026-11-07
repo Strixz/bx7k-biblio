@@ -173,13 +173,13 @@
                 <ol class="livres" data-etagere={e.id} use:triable={{ etagereId: e.id! }}>
                   {#each e.livres as l, i (l.id)}
                     <li class="ligne" data-id={l.id}>
+                      <span class="poignee" aria-label="Déplacer ce livre" role="img">⋮⋮</span>
                       <span class="pos" aria-hidden="true">{i + 1}</span>
                       <a class="infos" href={`#/livre/${l.id}`}>
                         <span class="t">{l.titre}</span>
                         {#if l.auteur}<span class="doux">{l.auteur}</span>{/if}
                       </a>
                       <Badges livre={l} />
-                      <span class="poignee" aria-label="Déplacer ce livre" role="img">⋮⋮</span>
                     </li>
                   {/each}
                 </ol>
@@ -231,9 +231,9 @@
     display: flex;
     align-items: center;
   }
+  /* Même colonne à gauche que la poignée des livres. */
   .poignee-etagere {
-    width: 40px;
-    margin-right: -12px;
+    margin-right: -16px;
   }
   .titre {
     width: 100%;
@@ -275,7 +275,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 0 6px 12px;
+    padding: 6px 12px 6px 0;
     border-top: 1px solid var(--bo);
     background: var(--su);
     min-height: 64px;
@@ -283,6 +283,7 @@
   .pos {
     width: 1.6em;
     flex: none;
+    margin-left: -10px;
     text-align: right;
     color: var(--doux);
     font-size: 0.9rem;

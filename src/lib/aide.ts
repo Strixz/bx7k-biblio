@@ -30,7 +30,7 @@ export const AIDES: Record<string, { titre: string; points: string[] }> = {
     points: [
       'Touchez le nom d’une étagère pour l’ouvrir ou la fermer.',
       'Les livres sont dans l’ordre de l’étagère, de gauche à droite.',
-      'Pour déplacer un livre : posez le doigt sur ⋮⋮, gardez-le appuyé et faites glisser.',
+      'Pour déplacer un livre : posez le doigt sur ⋮⋮ à gauche du livre, gardez-le appuyé et faites glisser.',
       'Pour le mettre sur une autre étagère : faites-le glisser sur le nom de cette étagère.',
       'Touchez un livre pour voir sa fiche.',
       'Pour changer l’ordre des étagères : posez le doigt sur ⋮⋮ à gauche du nom de l’étagère et faites-la glisser.',
