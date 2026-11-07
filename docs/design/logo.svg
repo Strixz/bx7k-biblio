@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c0643b"/><stop offset="1" stop-color="#8b3f22"/></linearGradient></defs>
+  <rect width="180" height="180" fill="url(#ga)"/>
+  <circle cx="90" cy="92" r="70" fill="#e07b47" opacity=".35"/>
+  <rect x="30" y="28" width="120" height="130" rx="6" fill="#5c3c22"/>
+  <rect x="38" y="36" width="104" height="114" fill="#3b2a1e"/>
+  <!-- étagère 1 -->
+  <rect x="40" y="42" width="8" height="30" fill="#fbf5ea"/><rect x="49" y="46" width="10" height="26" fill="#e5b25d"/>
+  <rect x="60" y="40" width="7" height="32" fill="#8fae7b"/><rect x="68" y="44" width="9" height="28" fill="#e07b47"/>
+  <rect x="84" y="42" width="9" height="30" fill="#f1e6d3" transform="rotate(-20 93 72)"/>
+  <rect x="108" y="66" width="28" height="6" fill="#e5b25d"/><rect x="111" y="60" width="24" height="6" fill="#fbf5ea"/>
+  <rect x="38" y="72" width="104" height="6" fill="#5c3c22"/>
+  <!-- étagère 2 -->
+  <rect x="40" y="82" width="9" height="28" fill="#c45a74"/><rect x="50" y="86" width="8" height="24" fill="#fbf5ea"/>
+  <rect x="64" y="83" width="9" height="27" fill="#e5b25d" transform="rotate(12 73 110)"/>
+  <rect x="76" y="80" width="10" height="30" fill="#7f9ed6"/><rect x="87" y="83" width="8" height="27" fill="#e07b47"/>
+  <rect x="96" y="79" width="11" height="31" fill="#f1e6d3"/><rect x="108" y="85" width="8" height="25" fill="#8fae7b"/>
+  <rect x="117" y="81" width="9" height="29" fill="#fbf5ea"/><rect x="127" y="84" width="8" height="26" fill="#c45a74"/>
+  <rect x="38" y="110" width="104" height="6" fill="#5c3c22"/>
+  <!-- étagère 3 -->
+  <rect x="40" y="120" width="10" height="30" fill="#e5b25d"/><rect x="51" y="122" width="8" height="28" fill="#8fae7b"/>
+  <rect x="60" y="118" width="10" height="32" fill="#fbf5ea"/><rect x="71" y="124" width="8" height="26" fill="#c45a74"/>
+  <rect x="80" y="120" width="9" height="30" fill="#e07b47"/>
+  <rect x="94" y="122" width="9" height="28" fill="#7f9ed6" transform="rotate(-22 94 150)"/>
+  <rect x="118" y="138" width="14" height="12" rx="2" fill="#e07b47"/>
+  <ellipse cx="121" cy="132" rx="4" ry="8" fill="#8fae7b" transform="rotate(-25 121 132)"/>
+  <ellipse cx="129" cy="131" rx="4" ry="9" fill="#6f8a5e" transform="rotate(20 129 131)"/>
+</svg>

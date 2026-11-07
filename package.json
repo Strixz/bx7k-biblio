@@ -1,0 +1,33 @@
+{
+  "name": "biblio-scan",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.23.0",
+    "dexie": "^4.4.7",
+    "sortablejs": "^1.15.7"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@tsconfig/svelte": "^5.0.8",
+    "@types/sortablejs": "^1.15.9",
+    "fake-indexeddb": "^6.2.7",
+    "jsdom": "^31.0.0",
+    "svelte": "^5.57.3",
+    "svelte-check": "^4.7.8",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.6",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.0",
+    "workbox-window": "^7.4.1"
+  }
+}
