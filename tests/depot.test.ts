@@ -121,6 +121,19 @@ describe('livres', () => {
     expect((await d.livresEtagere(e1)).map((l) => l.position)).toEqual([0]);
   });
 
+  it('déplacer un livre à une position précise, dans la même étagère ou une autre', async () => {
+    const a = await nouveau(e1, 'A');
+    await nouveau(e1, 'B');
+    const c = await nouveau(e1, 'C');
+    await nouveau(e2, 'X');
+    await d.deplacerLivre(c, e1, 0);
+    expect(await titres(e1)).toEqual(['C', 'A', 'B']);
+    await d.deplacerLivre(a, e2, 1);
+    expect(await titres(e1)).toEqual(['C', 'B']);
+    expect(await titres(e2)).toEqual(['X', 'A']);
+    expect((await d.livresEtagere(e1)).map((l) => l.position)).toEqual([0, 1]);
+  });
+
   it('supprimer un livre resserre les positions', async () => {
     await nouveau(e1, 'A');
     const b = await nouveau(e1, 'B');

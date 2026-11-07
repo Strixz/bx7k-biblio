@@ -132,6 +132,18 @@ export async function deplacerVersEtagere(livreId: number, etagereId: number) {
   });
 }
 
+/** Place le livre à `index` (0 = le plus à gauche) sur l'étagère donnée. */
+export async function deplacerLivre(livreId: number, etagereId: number, index: number) {
+  await db.transaction('rw', db.livres, async () => {
+    const l = await db.livres.get(livreId);
+    if (!l) return;
+    const cible = (await livresEtagere(etagereId)).map((x) => x.id!).filter((id) => id !== livreId);
+    cible.splice(Math.max(0, Math.min(index, cible.length)), 0, livreId);
+    await appliquerOrdre(etagereId, cible);
+    if (l.etagereId !== etagereId) await resserrer(l.etagereId);
+  });
+}
+
 export async function supprimerLivre(id: number) {
   await db.transaction('rw', db.livres, async () => {
     const l = await db.livres.get(id);
