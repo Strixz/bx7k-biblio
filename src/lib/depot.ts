@@ -119,6 +119,16 @@ export async function modifierEtagere(etagereId: number, nom: string, forme: For
   });
 }
 
+/** Range les étagères du meuble dans l'ordre donné (liste des anciens `ordre`, du haut vers le bas). */
+export async function reordonnerEtageres(biblioId: number, ordres: number[]) {
+  await db.transaction('rw', db.etageres, async () => {
+    for (const e of await db.etageres.where({ biblioId }).toArray()) {
+      const ordre = ordres.indexOf(e.ordre);
+      if (ordre >= 0 && ordre !== e.ordre) await db.etageres.update(e.id!, { ordre });
+    }
+  });
+}
+
 /** Nombre de livres sur l'étagère (les deux rangées d'une double rangée). */
 export async function compterLivresGroupe(etagereId: number): Promise<number> {
   const ids = (await groupeEtagere(etagereId)).map((e) => e.id!);

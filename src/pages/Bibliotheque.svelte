@@ -2,7 +2,7 @@
   import { liveQuery } from 'dexie';
   import Sortable from 'sortablejs';
   import { db } from '../lib/db';
-  import { compterLivresBiblio, deplacerLivre, deplacerVersEtagere, listerEtageres, livresEtagere, renommerBibliotheque, supprimerBibliotheque } from '../lib/depot';
+  import { compterLivresBiblio, deplacerLivre, deplacerVersEtagere, listerEtageres, livresEtagere, renommerBibliotheque, reordonnerEtageres, supprimerBibliotheque } from '../lib/depot';
   import { nomEtagere } from '../lib/etageres';
   import { confirmer, demander, toast } from '../lib/dialogues.svelte';
   import { aller } from '../lib/routeur.svelte';
@@ -20,6 +20,48 @@
       return { biblio, mega, etageres };
     })
   );
+
+  /** Étagères regroupées : les deux rangées d'une double rangée se déplacent ensemble. */
+  const groupes = $derived.by(() => {
+    const res: { ordre: number; etageres: NonNullable<typeof $donnees>['etageres'] }[] = [];
+    for (const e of $donnees?.etageres ?? []) {
+      if (res.at(-1)?.ordre === e.ordre) res.at(-1)!.etageres.push(e);
+      else res.push({ ordre: e.ordre, etageres: [e] });
+    }
+    return res;
+  });
+
+  /** Glisser-déposer des étagères par leur poignée, même principe que pour les livres. */
+  function triableEtageres(node: HTMLElement) {
+    const s = Sortable.create(node, {
+      group: 'etageres',
+      handle: '.poignee-etagere',
+      draggable: '.groupe',
+      animation: 150,
+      forceFallback: true,
+      // Le fantôme qui suit le doigt va dans <body> : dans la liste, il fausserait la position d'arrivée.
+      fallbackOnBody: true,
+      fallbackTolerance: 4,
+      scroll: true,
+      bubbleScroll: true,
+      scrollSensitivity: 90,
+      ghostClass: 'fantome',
+      chosenClass: 'choisi',
+      dragClass: 'glisse',
+      async onEnd(evt) {
+        const de = evt.from as HTMLElement;
+        const blocs = [...de.querySelectorAll(':scope > .groupe')].filter((x) => x !== evt.item);
+        const prec = blocs[evt.oldDraggableIndex! - 1];
+        de.insertBefore(evt.item, prec ? prec.nextSibling : (blocs[0] ?? null));
+        if (evt.oldDraggableIndex === evt.newDraggableIndex) return;
+        const ordres = groupes.map((g) => g.ordre);
+        const [deplace] = ordres.splice(evt.oldDraggableIndex!, 1);
+        ordres.splice(evt.newDraggableIndex!, 0, deplace);
+        await reordonnerEtageres(id, ordres);
+      }
+    });
+    return { destroy: () => s.destroy() };
+  }
 
   /** Étagères ouvertes. Par défaut, la première. */
   let ouvertes = $state(new Set<number>());
@@ -41,7 +83,8 @@
   /** Glisser-déposer : SortableJS déplace l'élément, on le remet en place et on laisse les données redessiner. */
   function triable(node: HTMLElement, opts: { etagereId: number; enTete?: boolean }) {
     const s = Sortable.create(node, {
-      group: { name: 'livres', pull: !opts.enTete, put: true },
+      // Seuls les livres peuvent être lâchés ici (pas une étagère qu'on déplace).
+      group: { name: 'livres', pull: !opts.enTete, put: ['livres'] },
       sort: !opts.enTete,
       handle: '.poignee',
       draggable: '.ligne',
@@ -107,44 +150,51 @@
         Ce meuble n’a pas encore d’étagère.<br />Ajoutez-les une par une.
       </div>
     {/if}
-    <div class="etageres">
-      {#each etageres as e (e.id)}
-        {@const ouverte = ouvertes.has(e.id!)}
-        <section class="carte etagere">
-          <div class="entete" data-etagere={e.id} data-entete="oui" use:triable={{ etagereId: e.id!, enTete: true }}>
-            <button class="titre" onclick={() => basculer(e.id!)} aria-expanded={ouverte}>
-              <span class="nom">{nomEtagere(e)}</span>
-              <span class="doux">{e.livres.length} livre{e.livres.length > 1 ? 's' : ''} {ouverte ? '▾' : '▸'}</span>
-            </button>
-          </div>
-
-          {#if ouverte}
-            {#if e.sens === 'haut-bas' && e.livres.length}
-              <p class="sens doux">Du haut de la pile vers le bas</p>
-            {/if}
-            <ol class="livres" data-etagere={e.id} use:triable={{ etagereId: e.id! }}>
-              {#each e.livres as l, i (l.id)}
-                <li class="ligne" data-id={l.id}>
-                  <span class="pos" aria-hidden="true">{i + 1}</span>
-                  <a class="infos" href={`#/livre/${l.id}`}>
-                    <span class="t">{l.titre}</span>
-                    {#if l.auteur}<span class="doux">{l.auteur}</span>{/if}
-                  </a>
-                  <Badges livre={l} />
-                  <span class="poignee" aria-label="Déplacer ce livre" role="img">⋮⋮</span>
-                </li>
-              {/each}
-            </ol>
-            {#if !e.livres.length}
-              <p class="vide-etagere doux">Étagère vide. Faites glisser un livre ici ou scannez-en.</p>
-            {/if}
-            <div class="actions">
-              <a class="lien" href={`#/serie/${e.id}`}>📷 Scanner des livres ici</a>
-              <a class="lien" href={`#/ajouter/${e.id}`}>＋ Un livre</a>
-              <a class="lien" href={`#/etagere/${e.id}`}>✎ Modifier</a>
-            </div>
-          {/if}
-        </section>
+    <div class="etageres" use:triableEtageres>
+      {#each groupes as g (g.ordre)}
+        <div class="groupe">
+          {#each g.etageres as e (e.id)}
+            {@const ouverte = ouvertes.has(e.id!)}
+            <section class="carte etagere">
+              <div class="entete" data-etagere={e.id} data-entete="oui" use:triable={{ etagereId: e.id!, enTete: true }}>
+                {#if etageres.length > 1}
+                  <span class="poignee poignee-etagere" aria-label="Déplacer cette étagère" role="img">⋮⋮</span>
+                {/if}
+                <button class="titre" onclick={() => basculer(e.id!)} aria-expanded={ouverte}>
+                  <span class="nom">{nomEtagere(e)}</span>
+                  <span class="doux">{e.livres.length} livre{e.livres.length > 1 ? 's' : ''} {ouverte ? '▾' : '▸'}</span>
+                </button>
+              </div>
+    
+              {#if ouverte}
+                {#if e.sens === 'haut-bas' && e.livres.length}
+                  <p class="sens doux">Du haut de la pile vers le bas</p>
+                {/if}
+                <ol class="livres" data-etagere={e.id} use:triable={{ etagereId: e.id! }}>
+                  {#each e.livres as l, i (l.id)}
+                    <li class="ligne" data-id={l.id}>
+                      <span class="pos" aria-hidden="true">{i + 1}</span>
+                      <a class="infos" href={`#/livre/${l.id}`}>
+                        <span class="t">{l.titre}</span>
+                        {#if l.auteur}<span class="doux">{l.auteur}</span>{/if}
+                      </a>
+                      <Badges livre={l} />
+                      <span class="poignee" aria-label="Déplacer ce livre" role="img">⋮⋮</span>
+                    </li>
+                  {/each}
+                </ol>
+                {#if !e.livres.length}
+                  <p class="vide-etagere doux">Étagère vide. Faites glisser un livre ici ou scannez-en.</p>
+                {/if}
+                <div class="actions">
+                  <a class="lien" href={`#/serie/${e.id}`}>📷 Scanner des livres ici</a>
+                  <a class="lien" href={`#/ajouter/${e.id}`}>＋ Un livre</a>
+                  <a class="lien" href={`#/etagere/${e.id}`}>✎ Modifier</a>
+                </div>
+              {/if}
+            </section>
+          {/each}
+        </div>
       {/each}
     </div>
 
@@ -171,8 +221,19 @@
   .etagere {
     overflow: hidden;
   }
+  .groupe {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
   .entete {
     position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .poignee-etagere {
+    width: 40px;
+    margin-right: -12px;
   }
   .titre {
     width: 100%;

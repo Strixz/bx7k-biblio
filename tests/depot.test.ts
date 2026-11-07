@@ -104,6 +104,15 @@ describe('étagères', () => {
     expect(await titres(id)).toEqual(['A', 'B', 'C']);
   });
 
+  it('change l’ordre des étagères, les deux rangées d’une double restant ensemble', async () => {
+    await d.creerEtagere(b, 'Haut', 'simple');
+    await d.creerEtagere(b, 'Milieu', 'double');
+    await d.creerEtagere(b, 'Bas', 'pile');
+    await d.reordonnerEtageres(b, [2, 0, 1]);
+    expect(await noms()).toEqual(['Bas', 'Haut', 'Milieu · devant', 'Milieu · derrière']);
+    expect((await d.listerEtageres(b)).map((e) => e.ordre)).toEqual([0, 1, 2, 2]);
+  });
+
   it('supprime une étagère avec ses deux rangées et ses livres, sans toucher aux autres', async () => {
     const garde = await d.creerEtagere(b, 'Étagère 1', 'simple');
     const id = await d.creerEtagere(b, 'Étagère 2', 'double');
