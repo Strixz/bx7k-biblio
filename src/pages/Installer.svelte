@@ -32,8 +32,9 @@
         <li><span class="num">1</span><span>Ouvrez cette page dans <strong>Safari</strong>.</span></li>
         <li><span class="num">2</span><span>Touchez le bouton <strong>Partager</strong> <span class="ic" aria-label="(un carré avec une flèche vers le haut)">⬆︎</span> en bas de l’écran.</span></li>
         <li><span class="num">3</span><span>Faites défiler et touchez <strong>« Sur l’écran d’accueil »</strong>.</span></li>
-        <li><span class="num">4</span><span>Touchez <strong>Ajouter</strong> en haut à droite.</span></li>
-        <li><span class="num">5</span><span>Ouvrez l’application depuis sa nouvelle icône 📚 sur l’écran d’accueil.</span></li>
+        <li><span class="num">4</span><span>Si l’option <strong>« Ouvrir en tant qu’app web »</strong> apparaît, <strong>laissez-la activée</strong> : c’est elle qui garde vos livres à l’abri sur le téléphone.</span></li>
+        <li><span class="num">5</span><span>Touchez <strong>Ajouter</strong> en haut à droite.</span></li>
+        <li><span class="num">6</span><span>Ouvrez l’application depuis sa nouvelle icône 📚 sur l’écran d’accueil.</span></li>
       </ol>
     {/if}
     <p class="doux">Important : utilisez toujours l’icône de l’écran d’accueil. Les livres ajoutés depuis le navigateur ne sont pas les mêmes que ceux de l’application installée.</p>
